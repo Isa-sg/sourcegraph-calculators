@@ -1,0 +1,341 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif}
+.wrap{background:#111;padding:24px;max-width:960px;margin:0 auto}
+.logo{font-size:13px;font-weight:600;color:#fff;letter-spacing:.08em;margin-bottom:20px;opacity:.7}
+h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
+.subtitle{font-size:13px;color:#888;margin-bottom:16px}
+.toggle-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.toggle-label{font-size:12px;color:#888}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:#333;border-radius:20px;transition:background .2s}
+.toggle input:checked+.toggle-track{background:#5cb85c}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:0.5px solid #333}
+.tab{padding:10px 20px;font-size:13px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.tab.active{color:#fff;border-bottom-color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#1a1a1a;border:0.5px solid #333;border-radius:10px;padding:20px}
+.card-title{font-size:11px;font-weight:500;letter-spacing:.06em;color:#666;text-transform:uppercase;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:#888;margin-bottom:5px}
+.field .hint{font-size:11px;color:#555;margin-top:3px}
+.field input[type=number]{width:100%;background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;outline:none}
+.field input[type=number]:focus{border-color:#666}
+.field .calc-val{font-size:15px;font-weight:500;color:#fff;padding:8px 0}
+.divider{border:none;border-top:0.5px solid #2a2a2a;margin:14px 0}
+.result-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:0.5px solid #222}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:12px;color:#888}
+.result-val{font-size:13px;font-weight:500;color:#fff;text-align:right}
+.result-val.green{color:#5cb85c}
+.tier-row{min-height:28px;margin-bottom:8px}
+.tier-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#1e2a1e;color:#5cb85c;border:0.5px solid #2d4a2d;}
+.slider-section{margin-top:4px}
+.slider-val{font-size:22px;font-weight:500;text-align:center;margin:6px 0 10px;transition:color .15s}
+.slider-val.green{color:#5cb85c}
+.slider-val.amber{color:#e8a838}
+.slider-val.red{color:#e85555}
+.track-outer{position:relative;height:8px;border-radius:4px;margin-bottom:6px;overflow:hidden;background:#333}
+.track-fill{position:absolute;top:0;left:0;height:100%;transition:width .05s,background .15s;border-radius:4px}
+.track-labels{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;transition:opacity .2s}
+.track-labels.hidden{opacity:0;pointer-events:none}
+.track-labels .lbl-green{color:#5cb85c}
+.track-labels .lbl-amber{color:#e8a838}
+.track-labels .lbl-red{color:#e85555}
+.range-wrap{position:relative;margin-bottom:0}
+input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:0}
+.end-labels{display:flex;justify-content:space-between;font-size:10px;color:#555;margin-top:2px}
+.approval-note{font-size:11px;font-style:italic;text-align:center;min-height:16px;margin-top:6px;transition:opacity .2s}
+.approval-note.hidden{opacity:0;pointer-events:none}
+.approval-note.ok{color:#5cb85c}
+.approval-note.ghos{color:#e8a838}
+.approval-note.vpcro{color:#e85555}
+.approval-note.nodisc{color:#e85555}
+.footnote{font-size:11px;color:#555;margin-top:20px;line-height:1.9}
+</style>
+
+<div class="wrap">
+  <div class="logo">SOURCEGRAPH</div>
+  <h1>Identify your recommended credit volume</h1>
+  <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
+
+  <div class="toggle-bar">
+    <span class="toggle-label">Show details</span>
+    <label class="toggle">
+      <input type="checkbox" id="detailsToggle" checked>
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
+    <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
+  </div>
+
+  <!-- NEW/RENEWAL TAB -->
+  <div class="tab-content active" id="tab-renewal">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Usage inputs</div>
+        <div class="field">
+          <label>Developers / users</label>
+          <input type="number" id="r-users" placeholder="e.g. 500" min="1" oninput="calcRenewal()">
+        </div>
+        <div class="field">
+          <label>Avg. credits per user per month*</label>
+          <div class="hint">Included credits are 175/user/month (~2.5 deep searches)</div>
+          <input type="number" id="r-cpum" placeholder="e.g. 300" min="0" oninput="calcRenewal()">
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Total avg. credits per month*</label>
+          <div class="hint">Avg. credits per user per month x users</div>
+          <div class="calc-val" id="r-total-month">—</div>
+        </div>
+        <div class="field">
+          <label>Total annual credits*</label>
+          <div class="hint">Total avg. credits per month x 12</div>
+          <div class="calc-val" id="r-total-year">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Our recommendation</div>
+        <div class="result-row"><span class="result-label">Annual credits included**</span><span class="result-val" id="r-included">—</span></div>
+        <div class="result-row"><span class="result-label">Total annual credits*</span><span class="result-val" id="r-needed">—</span></div>
+        <div class="result-row"><span class="result-label">Annual credits (usage)</span><span class="result-val" id="r-gap">—</span></div>
+        <hr class="divider">
+        <div class="tier-row"><span id="r-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
+        <div class="field">
+          <label>Rate / 100 credits</label>
+          <div class="slider-section">
+            <div class="slider-val green" id="r-rate-val">$0.95</div>
+            <div class="track-outer">
+              <div class="track-fill" id="r-track-fill" style="width:100%;background:#5cb85c"></div>
+            </div>
+            <div class="track-labels" id="r-track-labels">
+              <span class="lbl-green">Rep authority</span>
+              <span class="lbl-amber">GHOS</span>
+              <span class="lbl-red">VP Finance / CRO</span>
+            </div>
+            <div class="range-wrap">
+              <input type="range" id="r-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onRenewalSlider()">
+            </div>
+            <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
+            <div class="approval-note ok" id="r-approval">Within rep authority</div>
+          </div>
+        </div>
+        <div class="result-row"><span class="result-label">Discount vs. list</span><span class="result-val" id="r-discount">0%</span></div>
+        <hr class="divider">
+        <div class="result-row"><span class="result-label">Annual credits (usage) cost</span><span class="result-val green" id="r-cost">—</span></div>
+      </div>
+    </div>
+    <div class="footnote">
+      *Includes free allocations<br>
+      **Annual credits included = 2,100 per user per year, pooled<br>
+      Minimum annual credits (usage) purchase: 100,000 credits<br>
+      Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
+    </div>
+  </div>
+
+  <!-- MID-TERM EXPANSION TAB -->
+  <div class="tab-content" id="tab-expansion">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Usage inputs</div>
+        <div class="field">
+          <label>Developers / users</label>
+          <input type="number" id="e-users" placeholder="e.g. 500" min="1" oninput="calcExpansion()">
+        </div>
+        <div class="field">
+          <label>Add-on avg. credits per user per month</label>
+          <input type="number" id="e-cpum" placeholder="e.g. 200" min="0" oninput="calcExpansion()">
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Total avg. credits per month</label>
+          <div class="hint">Avg. credits per user per month x users</div>
+          <div class="calc-val" id="e-total-month">—</div>
+        </div>
+        <div class="field">
+          <label>Months remaining in contract</label>
+          <input type="number" id="e-months" placeholder="e.g. 6" min="1" max="12" oninput="calcExpansion()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Our recommendation</div>
+        <div class="result-row"><span class="result-label">Recommended purchase*</span><span class="result-val" id="e-purchase">—</span></div>
+        <hr class="divider">
+        <div class="tier-row"><span id="e-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
+        <div class="field">
+          <label>Rate / 100 credits</label>
+          <div class="slider-section">
+            <div class="slider-val green" id="e-rate-val">$0.95</div>
+            <div class="track-outer">
+              <div class="track-fill" id="e-track-fill" style="width:100%;background:#5cb85c"></div>
+            </div>
+            <div class="track-labels" id="e-track-labels">
+              <span class="lbl-green">Rep authority</span>
+              <span class="lbl-amber">GHOS</span>
+              <span class="lbl-red">VP Finance / CRO</span>
+            </div>
+            <div class="range-wrap">
+              <input type="range" id="e-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onExpansionSlider()">
+            </div>
+            <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
+            <div class="approval-note ok" id="e-approval">Within rep authority</div>
+          </div>
+        </div>
+        <div class="result-row"><span class="result-label">Discount vs. list</span><span class="result-val" id="e-discount">0%</span></div>
+        <hr class="divider">
+        <div class="result-row"><span class="result-label">ARR impact at renewal</span><span class="result-val green" id="e-arr">—</span></div>
+      </div>
+    </div>
+    <div class="footnote">
+      *Minimum 100,000 credits<br>
+      Credit purchase is invoiced in full at the time of purchase and covers the applicable usage period.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TIERS=[
+  {label:'Tier 1 (up to 2.5M)',  min:0,        max:2500000,  repFloor:null, mgrFloor:null, discountable:false},
+  {label:'Tier 2 (2.5M-5M)',     min:2500001,  max:4999999,  repFloor:0.89, mgrFloor:0.85, discountable:true},
+  {label:'Tier 3 (5M-10M)',      min:5000000,  max:9999999,  repFloor:0.85, mgrFloor:0.81, discountable:true},
+  {label:'Tier 4 (10M-20M)',     min:10000000, max:19999999, repFloor:0.78, mgrFloor:0.70, discountable:true},
+  {label:'Tier 5 (20M+)',        min:20000000, max:Infinity, repFloor:0.70, mgrFloor:0.60, discountable:true},
+];
+function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
+function fmt(n){return n==null?'—':n.toLocaleString('en-US',{maximumFractionDigits:0});}
+function fmtD(n){return n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+let showDetails=true;
+
+function updateSlider(p,credits,rawRate){
+  const tier=getTier(credits||0);
+  const pill=document.getElementById(p+'-tier-pill');
+  const slider=document.getElementById(p+'-rate-slider');
+  const rateValEl=document.getElementById(p+'-rate-val');
+  const approvalEl=document.getElementById(p+'-approval');
+  const discountEl=document.getElementById(p+'-discount');
+  const trackFill=document.getElementById(p+'-track-fill');
+  const labels=document.getElementById(p+'-track-labels');
+
+  pill.textContent=tier.label;
+  pill.style.visibility=(credits>0&&showDetails)?'visible':'hidden';
+
+  let rate=parseFloat(rawRate);
+  if(isNaN(rate)) rate=0.95;
+  rate=Math.min(0.95,Math.max(0,rate));
+  slider.value=rate;
+
+  const fillPct=(rate/0.95)*100;
+  trackFill.style.width=fillPct+'%';
+
+  let fillColor='#5cb85c';
+  if(!tier.discountable){
+    fillColor=rate<0.95?'#e85555':'#5cb85c';
+  } else {
+    if(rate>=tier.repFloor) fillColor='#5cb85c';
+    else if(rate>=tier.mgrFloor) fillColor='#e8a838';
+    else fillColor='#e85555';
+  }
+  trackFill.style.background=fillColor;
+
+  rateValEl.textContent='$'+rate.toFixed(2);
+  rateValEl.className='slider-val';
+  if(fillColor==='#5cb85c') rateValEl.classList.add('green');
+  else if(fillColor==='#e8a838') rateValEl.classList.add('amber');
+  else rateValEl.classList.add('red');
+
+  discountEl.textContent=(((0.95-rate)/0.95)*100).toFixed(1)+'%';
+  labels.className='track-labels'+(showDetails?'':' hidden');
+
+  approvalEl.className='approval-note'+(showDetails?'':' hidden');
+  if(!tier.discountable&&rate<0.95){
+    approvalEl.textContent='*this tier is not discountable — list price is $0.95';
+    approvalEl.classList.add('nodisc');
+  } else if(tier.discountable&&rate<tier.mgrFloor){
+    approvalEl.textContent='*requires VP Finance / CRO approval';
+    approvalEl.classList.add('vpcro');
+  } else if(tier.discountable&&rate<tier.repFloor){
+    approvalEl.textContent='*requires Global Head of Sales approval';
+    approvalEl.classList.add('ghos');
+  } else {
+    approvalEl.textContent='Within rep authority';
+    approvalEl.classList.add('ok');
+  }
+  return rate;
+}
+
+function calcRenewal(){
+  const users=parseFloat(document.getElementById('r-users').value)||0;
+  const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
+  const totalMonth=users*cpum;
+  const totalYear=totalMonth*12;
+  const included=users*2100;
+  const needed=totalYear;
+  const gap=Math.max(0,needed-included);
+  document.getElementById('r-total-month').textContent=fmt(totalMonth||null);
+  document.getElementById('r-total-year').textContent=fmt(totalYear||null);
+  document.getElementById('r-included').textContent=fmt(included||null);
+  document.getElementById('r-needed').textContent=fmt(needed||null);
+  document.getElementById('r-gap').textContent=fmt(gap||null);
+  const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
+  document.getElementById('r-cost').textContent=fmtD(gap>0?(gap/100)*rate:null);
+}
+
+function onRenewalSlider(){
+  const users=parseFloat(document.getElementById('r-users').value)||0;
+  const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
+  const gap=Math.max(0,(users*cpum*12)-(users*2100));
+  const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
+  document.getElementById('r-cost').textContent=fmtD(gap>0?(gap/100)*rate:null);
+}
+
+function calcExpansion(){
+  const users=parseFloat(document.getElementById('e-users').value)||0;
+  const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
+  const months=parseFloat(document.getElementById('e-months').value)||0;
+  const totalMonth=users*cpum;
+  const purchase=Math.max(100000,totalMonth*months);
+  document.getElementById('e-total-month').textContent=fmt(totalMonth||null);
+  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
+  document.getElementById('e-arr').textContent=fmtD(purchase>0?(purchase/100)*rate:null);
+}
+
+function onExpansionSlider(){
+  const users=parseFloat(document.getElementById('e-users').value)||0;
+  const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
+  const months=parseFloat(document.getElementById('e-months').value)||0;
+  const purchase=Math.max(100000,users*cpum*months);
+  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
+  document.getElementById('e-arr').textContent=fmtD(purchase>0?(purchase/100)*rate:null);
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='renewal'?0:1)));
+  document.getElementById('tab-renewal').classList.toggle('active',t==='renewal');
+  document.getElementById('tab-expansion').classList.toggle('active',t==='expansion');
+}
+
+document.getElementById('detailsToggle').addEventListener('change',function(){
+  showDetails=this.checked;
+  calcRenewal();
+  calcExpansion();
+});
+
+updateSlider('r',0,0.95);
+updateSlider('e',0,0.95);
+</script>
