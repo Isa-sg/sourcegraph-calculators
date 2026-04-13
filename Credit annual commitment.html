@@ -18,13 +18,17 @@ h1{font-size:18px;font-weight:500;color:#fff;margin-bottom:4px}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
 .inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;display:flex;gap:24px;margin-bottom:6px;flex-wrap:wrap;align-items:flex-end}
-.inputs-note{font-size:11px;color:#666;margin-bottom:16px;padding-left:2px;transition:opacity .2s}
+.inputs-note{font-size:11px;color:#666;margin-bottom:8px;padding-left:2px;transition:opacity .2s}
 .inputs-note.hidden{opacity:0;pointer-events:none}
+.grandfather-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-left:2px;transition:opacity .2s}
+.grandfather-bar.hidden{opacity:0;pointer-events:none}
+.grandfather-label{font-size:11px;color:#888}
+.grandfather-label.active{color:#e8a838}
 .input-group{display:flex;flex-direction:column;gap:4px}
 .input-group label{font-size:10px;font-weight:500;letter-spacing:.06em;color:#888;text-transform:uppercase}
 .sublabel{font-size:10px;color:#555;transition:opacity .2s;min-height:14px}
 .sublabel.hidden{opacity:0;pointer-events:none}
-.input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:140px;outline:none}
+.input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:150px;outline:none}
 .input-group input:focus{border-color:#666}
 table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:0.5px solid #333}
 .hdr-empty{background:#1a1a1a;width:200px}
@@ -44,14 +48,18 @@ tbody tr td:first-child{color:#bbb;font-weight:500;background:#1a1a1a;width:200p
 .rate-input{background:#111;border:0.5px solid #555;border-radius:5px;color:#fff;font-size:13px;padding:5px 8px;width:80px;text-align:center;outline:none}
 .rate-input:focus{border-color:#888}
 .rate-input.blocked{border-color:#e85555;color:#e85555}
+.rate-input.hard-blocked{border-color:#e85555;color:#e85555;background:#2a1010}
 .tier-badge{font-size:10px;color:#888;letter-spacing:.04em;transition:opacity .2s}
 .tier-badge.hidden{opacity:0;pointer-events:none}
-.approval-msg{font-size:10px;font-style:italic;margin-top:1px;text-align:center;max-width:170px;transition:opacity .2s}
+.approval-msg{font-size:10px;font-style:italic;margin-top:1px;text-align:center;max-width:170px;transition:opacity .2s;line-height:1.4}
 .approval-msg.hidden{opacity:0;pointer-events:none}
 .approval-msg.nodisc{color:#e85555}
 .approval-msg.ghos{color:#e8a838}
 .approval-msg.vpcro{color:#e85555}
+.approval-msg.hardstop{color:#e85555;font-weight:500}
 .savings{color:#5cb85c;font-weight:500}
+.incl-label{transition:color .2s}
+.incl-label.grandfathered{color:#e8a838}
 tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-top:0.5px solid #2a2a2a}
 </style>
 </head>
@@ -73,22 +81,30 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <input type="number" id="users" placeholder="e.g. 500" min="1">
     </div>
     <div class="input-group">
-      <label>Base — total credits / day</label>
+      <label>Base — total credits / month</label>
       <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
-      <input type="number" id="baseDay" placeholder="e.g. 70,000" min="0" step="1">
+      <input type="number" id="baseMonth" placeholder="e.g. 1,500,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Growth — total credits / day</label>
+      <label>Growth — total credits / month</label>
       <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
-      <input type="number" id="growthDay" placeholder="e.g. 140,000" min="0" step="1">
+      <input type="number" id="growthMonth" placeholder="e.g. 3,000,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Scale — total credits / day</label>
+      <label>Scale — total credits / month</label>
       <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
-      <input type="number" id="scaleDay" placeholder="e.g. 280,000" min="0" step="1">
+      <input type="number" id="scaleMonth" placeholder="e.g. 6,000,000" min="0" step="1">
     </div>
   </div>
-  <div class="inputs-note" id="inputs-note">All usage inputs are company-wide daily totals across all users, not per individual user.</div>
+  <div class="inputs-note" id="inputs-note">All usage inputs are company-wide monthly totals across all users, not per individual user.</div>
+  <div class="grandfather-bar" id="grandfather-bar">
+    <span class="grandfather-label" id="grandfather-label">Grandfathered / renewing customer</span>
+    <label class="toggle">
+      <input type="checkbox" id="grandfatherToggle">
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+  </div>
   <table>
     <thead>
       <tr>
@@ -100,7 +116,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
     </thead>
     <tbody>
       <tr>
-        <td>Annual credits included*</td>
+        <td><span class="incl-label" id="incl-label">Annual credits included*</span></td>
         <td class="vb" id="inclBase">0</td>
         <td class="vg" id="inclGrowth">0</td>
         <td class="vs" id="inclScale">0</td>
@@ -120,9 +136,9 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <tr class="spacer"><td colspan="4"></td></tr>
       <tr>
         <td>Rate / 100 credits</td>
-        <td class="vb"><div class="rate-cell"><div class="tier-badge" id="tierBadgeBase"></div><input class="rate-input" id="rateBase" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalBase"></div></div></td>
-        <td class="vg"><div class="rate-cell"><div class="tier-badge" id="tierBadgeGrowth"></div><input class="rate-input" id="rateGrowth" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalGrowth"></div></div></td>
-        <td class="vs"><div class="rate-cell"><div class="tier-badge" id="tierBadgeScale"></div><input class="rate-input" id="rateScale" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalScale"></div></div></td>
+        <td class="vb"><div class="rate-cell"><div class="tier-badge" id="tierBadgeBase"></div><input class="rate-input" id="rateBase" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalBase"></div></div></td>
+        <td class="vg"><div class="rate-cell"><div class="tier-badge" id="tierBadgeGrowth"></div><input class="rate-input" id="rateGrowth" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalGrowth"></div></div></td>
+        <td class="vs"><div class="rate-cell"><div class="tier-badge" id="tierBadgeScale"></div><input class="rate-input" id="rateScale" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalScale"></div></div></td>
       </tr>
       <tr class="spacer"><td colspan="4"></td></tr>
       <tr>
@@ -145,12 +161,12 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       </tr>
     </tbody>
     <tfoot>
-      <tr><td colspan="4">*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits</td></tr>
+      <tr><td colspan="4" id="footer-note">*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits</td></tr>
     </tfoot>
   </table>
 </div>
 <script>
-const WORKING_DAYS_MONTH=22,MONTHS=12,INCLUDED_PER_USER=2100,OVERAGE_RATE_PER_100=1.10;
+const MONTHS=12,CREDITS_NEW=2100,CREDITS_GF=2520,OVERAGE_RATE_PER_100=1.10,MIN_RATE=0.60;
 const TIERS=[
   {label:'Tier 1 (up to 2.5M credits)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
   {label:'Tier 2 (2.5M-5M credits)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
@@ -161,6 +177,7 @@ const TIERS=[
 function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
 function getApproval(rate,tier,has){
   if(!has)return null;
+  if(rate<MIN_RATE)return 'hardstop';
   if(!tier.discountable){return rate<0.95?'nodisc':null;}
   if(rate<tier.mgrFloor)return 'vpcro';
   if(rate<tier.repFloor)return 'ghos';
@@ -169,23 +186,39 @@ function getApproval(rate,tier,has){
 function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 let internalVisible=true;
+let isGrandfathered=false;
 function applyVisibility(){
   const h=!internalVisible;
-  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note'].forEach(id=>{
+  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note','grandfather-bar'].forEach(id=>{
     document.getElementById(id).classList.toggle('hidden',h);
   });
 }
 function calc(){
   const users=parseFloat(document.getElementById('users').value)||0;
-  const bD=parseFloat(document.getElementById('baseDay').value)||0;
-  const gD=parseFloat(document.getElementById('growthDay').value)||0;
-  const sD=parseFloat(document.getElementById('scaleDay').value)||0;
+  const bM=parseFloat(document.getElementById('baseMonth').value)||0;
+  const gM=parseFloat(document.getElementById('growthMonth').value)||0;
+  const sM=parseFloat(document.getElementById('scaleMonth').value)||0;
   const rB=document.getElementById('rateBase').value;
   const rG=document.getElementById('rateGrowth').value;
   const rS=document.getElementById('rateScale').value;
-  [{sfx:'Base',cpd:bD,rv:rB},{sfx:'Growth',cpd:gD,rv:rG},{sfx:'Scale',cpd:sD,rv:rS}].forEach(({sfx,cpd,rv})=>{
-    const included=INCLUDED_PER_USER*users;
-    const annual=Math.round(cpd*WORKING_DAYS_MONTH*MONTHS);
+  const creditsPerUser=isGrandfathered?CREDITS_GF:CREDITS_NEW;
+  const inclLabel=document.getElementById('incl-label');
+  const footerNote=document.getElementById('footer-note');
+  const gfLabel=document.getElementById('grandfather-label');
+  if(isGrandfathered){
+    inclLabel.classList.add('grandfathered');
+    inclLabel.textContent='Annual credits included* (2,520/user)';
+    gfLabel.classList.add('active');
+    footerNote.innerHTML='*Included credits = 2,520 per user per year (grandfathered), pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }else{
+    inclLabel.classList.remove('grandfathered');
+    inclLabel.textContent='Annual credits included*';
+    gfLabel.classList.remove('active');
+    footerNote.innerHTML='*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }
+  [{sfx:'Base',cpm:bM,rv:rB},{sfx:'Growth',cpm:gM,rv:rG},{sfx:'Scale',cpm:sM,rv:rS}].forEach(({sfx,cpm,rv})=>{
+    const included=creditsPerUser*users;
+    const annual=cpm*MONTHS;
     const commit=Math.max(0,annual-included);
     const tier=getTier(commit);
     const hasCustom=rv!=='';
@@ -206,8 +239,9 @@ function calc(){
     badge.textContent=tier.label;
     badge.className='tier-badge'+(internalVisible?'':' hidden');
     msg.className='approval-msg'+(internalVisible?'':' hidden');
-    inp.classList.remove('blocked');
-    if(approval==='nodisc'){msg.textContent='*this tier is not discountable — list price is $0.95';msg.classList.add('nodisc');inp.classList.add('blocked');}
+    inp.classList.remove('blocked','hard-blocked');
+    if(approval==='hardstop'){msg.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';msg.classList.add('hardstop');inp.classList.add('hard-blocked');}
+    else if(approval==='nodisc'){msg.textContent='*this tier is not discountable — list price is $0.95';msg.classList.add('nodisc');inp.classList.add('blocked');}
     else if(approval==='ghos'){msg.textContent='*requires Global Head of Sales approval';msg.classList.add('ghos');}
     else if(approval==='vpcro'){msg.textContent='*requires VP Finance / CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
     else{msg.textContent='';}
@@ -215,7 +249,8 @@ function calc(){
   applyVisibility();
 }
 document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
-['users','baseDay','growthDay','scaleDay','rateBase','rateGrowth','rateScale'].forEach(id=>{
+document.getElementById('grandfatherToggle').addEventListener('change',function(){isGrandfathered=this.checked;calc();});
+['users','baseMonth','growthMonth','scaleMonth','rateBase','rateGrowth','rateScale'].forEach(id=>{
   document.getElementById(id).addEventListener('input',calc);
 });
 calc();
