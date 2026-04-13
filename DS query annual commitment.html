@@ -10,9 +10,13 @@ h1{font-size:18px;font-weight:500;color:#fff;margin-bottom:4px}
 .toggle input:checked+.toggle-track{background:#5cb85c}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
-.inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end}
-.input-group{display:flex;flex-direction:column;gap:6px}
+.inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;display:flex;gap:24px;margin-bottom:6px;flex-wrap:wrap;align-items:flex-end}
+.inputs-note{font-size:11px;color:#666;margin-bottom:16px;padding-left:2px;transition:opacity .2s}
+.inputs-note.hidden{opacity:0;pointer-events:none}
+.input-group{display:flex;flex-direction:column;gap:4px}
 .input-group label{font-size:10px;font-weight:500;letter-spacing:.06em;color:#888;text-transform:uppercase}
+.sublabel{font-size:10px;color:#555;transition:opacity .2s;min-height:14px}
+.sublabel.hidden{opacity:0;pointer-events:none}
 .input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:130px;outline:none}
 .input-group input:focus{border-color:#666}
 table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:0.5px solid #333}
@@ -59,21 +63,26 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
   <div class="inputs-bar">
     <div class="input-group">
       <label>Number of users</label>
+      <div class="sublabel" id="sublabel-users">&nbsp;</div>
       <input type="number" id="users" placeholder="e.g. 500" min="1">
     </div>
     <div class="input-group">
-      <label>Base — avg. usage / day</label>
-      <input type="number" id="baseDay" placeholder="e.g. 2" min="0" step="0.1">
+      <label>Base — total DS queries / day</label>
+      <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
+      <input type="number" id="baseDay" placeholder="e.g. 1,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Growth — usage / day (med. spikes)</label>
-      <input type="number" id="growthDay" placeholder="e.g. 4" min="0" step="0.1">
+      <label>Growth — total DS queries / day</label>
+      <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
+      <input type="number" id="growthDay" placeholder="e.g. 2,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Scale — usage / day (high spikes)</label>
-      <input type="number" id="scaleDay" placeholder="e.g. 8" min="0" step="0.1">
+      <label>Scale — total DS queries / day</label>
+      <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
+      <input type="number" id="scaleDay" placeholder="e.g. 4,000" min="0" step="1">
     </div>
   </div>
+  <div class="inputs-note" id="inputs-note">All usage inputs are company-wide daily totals across all users, not per individual user.</div>
 
   <table>
     <thead>
@@ -92,13 +101,13 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
         <td class="vs" id="inclScale">0</td>
       </tr>
       <tr>
-        <td>Annual queries</td>
+        <td>Annual queries (expected)</td>
         <td class="vb" id="annBase">0</td>
         <td class="vg" id="annGrowth">0</td>
         <td class="vs" id="annScale">0</td>
       </tr>
       <tr>
-        <td>Total annual queries*</td>
+        <td>Recommended commit*</td>
         <td class="vb" id="totBase">0</td>
         <td class="vg" id="totGrowth">0</td>
         <td class="vs" id="totScale">0</td>
@@ -136,7 +145,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
         <td class="vs" id="pqScale">$0.00</td>
       </tr>
       <tr>
-        <td>Annual commit cost</td>
+        <td>Recommended commit cost</td>
         <td class="vb" id="costBase">$0.00</td>
         <td class="vg" id="costGrowth">$0.00</td>
         <td class="vs" id="costScale">$0.00</td>
@@ -155,7 +164,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       </tr>
     </tbody>
     <tfoot>
-      <tr><td colspan="4">*Includes free allocations &nbsp;&nbsp; **Overage cost = $0.77 per query</td></tr>
+      <tr><td colspan="4">*Recommended commit = expected annual queries minus included free queries &nbsp;&nbsp; **Overage cost = $0.77 per query</td></tr>
     </tfoot>
   </table>
 </div>
@@ -179,24 +188,13 @@ function getApproval(rate,tier,hasCustomRate){
 }
 function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-
 let internalVisible=true;
-
-function calcScenario(qPerDay,users,rateRaw,hasCustomRate){
-  const included=INCLUDED_PER_USER*users;
-  const annual=Math.round(qPerDay*WORKING_DAYS_MONTH*MONTHS);
-  const total=included+annual;
-  const annualCredits=annual*CREDITS_PER_QUERY;
-  const tier=getTier(annualCredits);
-  const rate=hasCustomRate?rateRaw:0.95;
-  const perQueryRate=(rate/100)*CREDITS_PER_QUERY;
-  const commitCost=perQueryRate*annual;
-  const overageCost=OVERAGE_PER_QUERY*annual;
-  const savings=overageCost-commitCost;
-  const approval=getApproval(rate,tier,hasCustomRate);
-  return{included,annual,total,annualCredits,tier,perQueryRate,commitCost,overageCost,savings,approval};
+function applyVisibility(){
+  const h=!internalVisible;
+  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden',h);
+  });
 }
-
 function calc(){
   const users=parseFloat(document.getElementById('users').value)||0;
   const bD=parseFloat(document.getElementById('baseDay').value)||0;
@@ -205,50 +203,41 @@ function calc(){
   const rB=document.getElementById('rateBase').value;
   const rG=document.getElementById('rateGrowth').value;
   const rS=document.getElementById('rateScale').value;
-
   [{sfx:'Base',qpd:bD,rv:rB},{sfx:'Growth',qpd:gD,rv:rG},{sfx:'Scale',qpd:sD,rv:rS}].forEach(({sfx,qpd,rv})=>{
-    const sc=calcScenario(qpd,users,parseFloat(rv)||0.95,rv!=='');
-
-    document.getElementById('incl'+sfx).textContent=fmt(sc.included);
-    document.getElementById('ann'+sfx).textContent=fmt(sc.annual);
-    document.getElementById('tot'+sfx).textContent=fmt(sc.total);
-    document.getElementById('pq'+sfx).textContent=fmtD(sc.perQueryRate);
-    document.getElementById('cost'+sfx).textContent=fmtD(sc.commitCost);
-    document.getElementById('ov'+sfx).textContent=fmtD(sc.overageCost);
-    document.getElementById('sav'+sfx).textContent=fmtD(Math.max(0,sc.savings));
-
+    const included=INCLUDED_PER_USER*users;
+    const annual=Math.round(qpd*WORKING_DAYS_MONTH*MONTHS);
+    const commit=Math.max(0,annual-included);
+    const commitCredits=commit*CREDITS_PER_QUERY;
+    const tier=getTier(commitCredits);
+    const hasCustom=rv!=='';
+    const rate=hasCustom?parseFloat(rv)||0.95:0.95;
+    const perQueryRate=(rate/100)*CREDITS_PER_QUERY;
+    const commitCost=perQueryRate*commit;
+    const overageCost=OVERAGE_PER_QUERY*commit;
+    const savings=overageCost-commitCost;
+    const approval=getApproval(rate,tier,hasCustom);
+    document.getElementById('incl'+sfx).textContent=fmt(included);
+    document.getElementById('ann'+sfx).textContent=fmt(annual);
+    document.getElementById('tot'+sfx).textContent=fmt(commit);
+    document.getElementById('pq'+sfx).textContent=fmtD(perQueryRate);
+    document.getElementById('cost'+sfx).textContent=fmtD(commitCost);
+    document.getElementById('ov'+sfx).textContent=fmtD(overageCost);
+    document.getElementById('sav'+sfx).textContent=fmtD(Math.max(0,savings));
     const badge=document.getElementById('tierBadge'+sfx);
     const msg=document.getElementById('approval'+sfx);
     const inp=document.getElementById('rate'+sfx);
-
-    badge.textContent=sc.tier.label;
+    badge.textContent=tier.label;
     badge.className='tier-badge'+(internalVisible?'':' hidden');
     msg.className='approval-msg'+(internalVisible?'':' hidden');
     inp.classList.remove('blocked');
-
-    if(sc.approval==='nodisc'){
-      msg.textContent='*this tier is not discountable — list price is $0.95';
-      msg.classList.add('nodisc');
-      inp.classList.add('blocked');
-    }else if(sc.approval==='ghos'){
-      msg.textContent='*requires Global Head of Sales approval';
-      msg.classList.add('ghos');
-    }else if(sc.approval==='vpcro'){
-      msg.textContent='*requires VP Finance & CRO approval';
-      msg.classList.add('vpcro');
-      inp.classList.add('blocked');
-    }else{
-      msg.textContent='';
-    }
+    if(approval==='nodisc'){msg.textContent='*this tier is not discountable — list price is $0.95';msg.classList.add('nodisc');inp.classList.add('blocked');}
+    else if(approval==='ghos'){msg.textContent='*requires Global Head of Sales approval';msg.classList.add('ghos');}
+    else if(approval==='vpcro'){msg.textContent='*requires VP Finance & CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
+    else{msg.textContent='';}
   });
+  applyVisibility();
 }
-
-document.getElementById('internalToggle').addEventListener('change',function(){
-  internalVisible=this.checked;
-  calc();
-});
-['users','baseDay','growthDay','scaleDay','rateBase','rateGrowth','rateScale'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',calc);
-});
+document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
+['users','baseDay','growthDay','scaleDay','rateBase','rateGrowth','rateScale'].forEach(id=>{document.getElementById(id).addEventListener('input',calc);});
 calc();
 </script>
