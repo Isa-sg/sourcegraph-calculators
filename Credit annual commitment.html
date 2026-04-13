@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Annual commitment options (DS queries)</title>
+<title>Annual commitment options (credits)</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
@@ -24,7 +24,7 @@ h1{font-size:18px;font-weight:500;color:#fff;margin-bottom:4px}
 .input-group label{font-size:10px;font-weight:500;letter-spacing:.06em;color:#888;text-transform:uppercase}
 .sublabel{font-size:10px;color:#555;transition:opacity .2s;min-height:14px}
 .sublabel.hidden{opacity:0;pointer-events:none}
-.input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:130px;outline:none}
+.input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:140px;outline:none}
 .input-group input:focus{border-color:#666}
 table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:0.5px solid #333}
 .hdr-empty{background:#1a1a1a;width:200px}
@@ -46,7 +46,7 @@ tbody tr td:first-child{color:#bbb;font-weight:500;background:#1a1a1a;width:200p
 .rate-input.blocked{border-color:#e85555;color:#e85555}
 .tier-badge{font-size:10px;color:#888;letter-spacing:.04em;transition:opacity .2s}
 .tier-badge.hidden{opacity:0;pointer-events:none}
-.approval-msg{font-size:10px;font-style:italic;margin-top:1px;text-align:center;max-width:160px;transition:opacity .2s}
+.approval-msg{font-size:10px;font-style:italic;margin-top:1px;text-align:center;max-width:170px;transition:opacity .2s}
 .approval-msg.hidden{opacity:0;pointer-events:none}
 .approval-msg.nodisc{color:#e85555}
 .approval-msg.ghos{color:#e8a838}
@@ -57,7 +57,8 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
 </head>
 <body>
 <div class="wrap">
-  <h1>Annual commitment options (DS queries)</h1>
+  <h1>Annual commitment options (credits)</h1>
+
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle">
@@ -66,6 +67,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <div class="toggle-thumb"></div>
     </label>
   </div>
+
   <div class="inputs-bar">
     <div class="input-group">
       <label>Number of users</label>
@@ -73,22 +75,23 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <input type="number" id="users" placeholder="e.g. 500" min="1">
     </div>
     <div class="input-group">
-      <label>Base — total DS queries / day</label>
+      <label>Base — total credits / day</label>
       <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
-      <input type="number" id="baseDay" placeholder="e.g. 1,000" min="0" step="1">
+      <input type="number" id="baseDay" placeholder="e.g. 70,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Growth — total DS queries / day</label>
+      <label>Growth — total credits / day</label>
       <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
-      <input type="number" id="growthDay" placeholder="e.g. 2,000" min="0" step="1">
+      <input type="number" id="growthDay" placeholder="e.g. 140,000" min="0" step="1">
     </div>
     <div class="input-group">
-      <label>Scale — total DS queries / day</label>
+      <label>Scale — total credits / day</label>
       <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
-      <input type="number" id="scaleDay" placeholder="e.g. 4,000" min="0" step="1">
+      <input type="number" id="scaleDay" placeholder="e.g. 280,000" min="0" step="1">
     </div>
   </div>
   <div class="inputs-note" id="inputs-note">All usage inputs are company-wide daily totals across all users, not per individual user.</div>
+
   <table>
     <thead>
       <tr>
@@ -100,19 +103,19 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
     </thead>
     <tbody>
       <tr>
-        <td>Annual queries included</td>
+        <td>Annual credits included*</td>
         <td class="vb" id="inclBase">0</td>
         <td class="vg" id="inclGrowth">0</td>
         <td class="vs" id="inclScale">0</td>
       </tr>
       <tr>
-        <td>Annual queries (expected)</td>
+        <td>Annual credits (expected)</td>
         <td class="vb" id="annBase">0</td>
         <td class="vg" id="annGrowth">0</td>
         <td class="vs" id="annScale">0</td>
       </tr>
       <tr>
-        <td>Recommended commit*</td>
+        <td>Recommended commit**</td>
         <td class="vb" id="totBase">0</td>
         <td class="vg" id="totGrowth">0</td>
         <td class="vs" id="totScale">0</td>
@@ -120,17 +123,29 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <tr class="spacer"><td colspan="4"></td></tr>
       <tr>
         <td>Rate / 100 credits</td>
-        <td class="vb"><div class="rate-cell"><div class="tier-badge" id="tierBadgeBase"></div><input class="rate-input" id="rateBase" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalBase"></div></div></td>
-        <td class="vg"><div class="rate-cell"><div class="tier-badge" id="tierBadgeGrowth"></div><input class="rate-input" id="rateGrowth" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalGrowth"></div></div></td>
-        <td class="vs"><div class="rate-cell"><div class="tier-badge" id="tierBadgeScale"></div><input class="rate-input" id="rateScale" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalScale"></div></div></td>
+        <td class="vb">
+          <div class="rate-cell">
+            <div class="tier-badge" id="tierBadgeBase"></div>
+            <input class="rate-input" id="rateBase" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95">
+            <div class="approval-msg" id="approvalBase"></div>
+          </div>
+        </td>
+        <td class="vg">
+          <div class="rate-cell">
+            <div class="tier-badge" id="tierBadgeGrowth"></div>
+            <input class="rate-input" id="rateGrowth" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95">
+            <div class="approval-msg" id="approvalGrowth"></div>
+          </div>
+        </td>
+        <td class="vs">
+          <div class="rate-cell">
+            <div class="tier-badge" id="tierBadgeScale"></div>
+            <input class="rate-input" id="rateScale" type="number" step="0.01" min="0.01" max="0.95" placeholder="$0.95">
+            <div class="approval-msg" id="approvalScale"></div>
+          </div>
+        </td>
       </tr>
       <tr class="spacer"><td colspan="4"></td></tr>
-      <tr>
-        <td>Per query rate</td>
-        <td class="vb" id="pqBase">$0.00</td>
-        <td class="vg" id="pqGrowth">$0.00</td>
-        <td class="vs" id="pqScale">$0.00</td>
-      </tr>
       <tr>
         <td>Recommended commit cost</td>
         <td class="vb" id="costBase">$0.00</td>
@@ -138,7 +153,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
         <td class="vs" id="costScale">$0.00</td>
       </tr>
       <tr>
-        <td>Overage cost**</td>
+        <td>Overage cost***</td>
         <td class="vb" id="ovBase">$0.00</td>
         <td class="vg" id="ovGrowth">$0.00</td>
         <td class="vs" id="ovScale">$0.00</td>
@@ -151,18 +166,19 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       </tr>
     </tbody>
     <tfoot>
-      <tr><td colspan="4">*Recommended commit = expected annual queries minus included free queries &nbsp;&nbsp; **Overage cost = $0.77 per query</td></tr>
+      <tr><td colspan="4">*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits</td></tr>
     </tfoot>
   </table>
 </div>
+
 <script>
-const WORKING_DAYS_MONTH=22,MONTHS=12,INCLUDED_PER_USER=30,OVERAGE_PER_QUERY=0.77,CREDITS_PER_QUERY=70;
+const WORKING_DAYS_MONTH=22,MONTHS=12,INCLUDED_PER_USER=2100,OVERAGE_RATE_PER_100=1.10;
 const TIERS=[
-  {label:'Tier 1 (up to 2.5M credits)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
-  {label:'Tier 2 (2.5M-5M credits)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
-  {label:'Tier 3 (5M-10M credits)',min:5000000,max:9999999,repFloor:0.85,mgrFloor:0.81,discountable:true},
-  {label:'Tier 4 (10M-20M credits)',min:10000000,max:19999999,repFloor:0.78,mgrFloor:0.70,discountable:true},
-  {label:'Tier 5 (20M+ credits)',min:20000000,max:Infinity,repFloor:0.70,mgrFloor:0.60,discountable:true},
+  {label:'Tier 1 (up to 2.5M credits)',min:0,       max:2500000, repFloor:null,mgrFloor:null,discountable:false},
+  {label:'Tier 2 (2.5M-5M credits)',   min:2500001, max:4999999, repFloor:0.89,mgrFloor:0.85,discountable:true},
+  {label:'Tier 3 (5M-10M credits)',    min:5000000, max:9999999, repFloor:0.85,mgrFloor:0.81,discountable:true},
+  {label:'Tier 4 (10M-20M credits)',   min:10000000,max:19999999,repFloor:0.78,mgrFloor:0.70,discountable:true},
+  {label:'Tier 5 (20M+ credits)',      min:20000000,max:Infinity,repFloor:0.70,mgrFloor:0.60,discountable:true},
 ];
 function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
 function getApproval(rate,tier,has){
@@ -177,7 +193,9 @@ function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,ma
 let internalVisible=true;
 function applyVisibility(){
   const h=!internalVisible;
-  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note'].forEach(id=>{document.getElementById(id).classList.toggle('hidden',h);});
+  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden',h);
+  });
 }
 function calc(){
   const users=parseFloat(document.getElementById('users').value)||0;
@@ -187,22 +205,25 @@ function calc(){
   const rB=document.getElementById('rateBase').value;
   const rG=document.getElementById('rateGrowth').value;
   const rS=document.getElementById('rateScale').value;
-  [{sfx:'Base',qpd:bD,rv:rB},{sfx:'Growth',qpd:gD,rv:rG},{sfx:'Scale',qpd:sD,rv:rS}].forEach(({sfx,qpd,rv})=>{
+  [{sfx:'Base',cpd:bD,rv:rB},{sfx:'Growth',cpd:gD,rv:rG},{sfx:'Scale',cpd:sD,rv:rS}].forEach(({sfx,cpd,rv})=>{
+    // included free credits: 2,100 x users
     const included=INCLUDED_PER_USER*users;
-    const annual=Math.round(qpd*WORKING_DAYS_MONTH*MONTHS);
+    // expected annual credits: company-wide daily credits x 22 working days x 12 months
+    const annual=Math.round(cpd*WORKING_DAYS_MONTH*MONTHS);
+    // recommended commit = gap between expected and included
     const commit=Math.max(0,annual-included);
-    const tier=getTier(commit*CREDITS_PER_QUERY);
+    const tier=getTier(commit);
     const hasCustom=rv!=='';
     const rate=hasCustom?parseFloat(rv)||0.95:0.95;
-    const perQueryRate=(rate/100)*CREDITS_PER_QUERY;
-    const commitCost=perQueryRate*commit;
-    const overageCost=OVERAGE_PER_QUERY*commit;
+    // commit cost: (commit / 100) x rate
+    const commitCost=(commit/100)*rate;
+    // overage cost: (commit / 100) x $1.10
+    const overageCost=(commit/100)*OVERAGE_RATE_PER_100;
     const savings=overageCost-commitCost;
     const approval=getApproval(rate,tier,hasCustom);
     document.getElementById('incl'+sfx).textContent=fmt(included);
     document.getElementById('ann'+sfx).textContent=fmt(annual);
     document.getElementById('tot'+sfx).textContent=fmt(commit);
-    document.getElementById('pq'+sfx).textContent=fmtD(perQueryRate);
     document.getElementById('cost'+sfx).textContent=fmtD(commitCost);
     document.getElementById('ov'+sfx).textContent=fmtD(overageCost);
     document.getElementById('sav'+sfx).textContent=fmtD(Math.max(0,savings));
@@ -215,13 +236,15 @@ function calc(){
     inp.classList.remove('blocked');
     if(approval==='nodisc'){msg.textContent='*this tier is not discountable — list price is $0.95';msg.classList.add('nodisc');inp.classList.add('blocked');}
     else if(approval==='ghos'){msg.textContent='*requires Global Head of Sales approval';msg.classList.add('ghos');}
-    else if(approval==='vpcro'){msg.textContent='*requires VP Finance & CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
+    else if(approval==='vpcro'){msg.textContent='*requires VP Finance / CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
     else{msg.textContent='';}
   });
   applyVisibility();
 }
 document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
-['users','baseDay','growthDay','scaleDay','rateBase','rateGrowth','rateScale'].forEach(id=>{document.getElementById(id).addEventListener('input',calc);});
+['users','baseDay','growthDay','scaleDay','rateBase','rateGrowth','rateScale'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
 calc();
 </script>
 </body>
