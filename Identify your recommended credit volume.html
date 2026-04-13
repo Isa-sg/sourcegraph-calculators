@@ -1,7 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identify your recommended credit volume</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif}
-.wrap{background:#111;padding:24px;max-width:960px;margin:0 auto}
+body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
+.wrap{background:#111;max-width:960px;margin:0 auto}
 .logo{font-size:13px;font-weight:600;color:#fff;letter-spacing:.08em;margin-bottom:20px;opacity:.7}
 h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .subtitle{font-size:13px;color:#888;margin-bottom:16px}
@@ -56,14 +62,15 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
 .approval-note.ghos{color:#e8a838}
 .approval-note.vpcro{color:#e85555}
 .approval-note.nodisc{color:#e85555}
+.approval-note.hardstop{color:#e85555;font-weight:500}
 .footnote{font-size:11px;color:#555;margin-top:20px;line-height:1.9}
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <div class="logo">SOURCEGRAPH</div>
   <h1>Identify your recommended credit volume</h1>
   <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
-
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle">
@@ -72,12 +79,10 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       <div class="toggle-thumb"></div>
     </label>
   </div>
-
   <div class="tabs">
     <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
     <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
   </div>
-
   <div class="tab-content active" id="tab-renewal">
     <div class="two-col">
       <div class="card">
@@ -88,7 +93,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
         </div>
         <div class="field">
           <label>Avg. credits per user per month*</label>
-          <div class="hint">Included credits are 175/user/month (~2.5 deep searches)</div>
+          <div class="hint">Included credits are 175/user/month</div>
           <input type="number" id="r-cpum" placeholder="e.g. 300" min="0" oninput="calcRenewal()">
         </div>
         <hr class="divider">
@@ -137,7 +142,6 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
     </div>
   </div>
-
   <div class="tab-content" id="tab-expansion">
     <div class="two-col">
       <div class="card">
@@ -192,8 +196,8 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     </div>
   </div>
 </div>
-
 <script>
+const MIN_RATE=0.60;
 const TIERS=[
   {label:'Tier 1 (up to 2.5M)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
   {label:'Tier 2 (2.5M-5M)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
@@ -234,7 +238,8 @@ function updateSlider(p,credits,rawRate){
   discountEl.textContent=(((0.95-rate)/0.95)*100).toFixed(1)+'%';
   labels.className='track-labels'+(showDetails?'':' hidden');
   approvalEl.className='approval-note'+(showDetails?'':' hidden');
-  if(!tier.discountable&&rate<0.95){approvalEl.textContent='*this tier is not discountable — list price is $0.95';approvalEl.classList.add('nodisc');}
+  if(rate<MIN_RATE){approvalEl.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';approvalEl.classList.add('hardstop');}
+  else if(!tier.discountable&&rate<0.95){approvalEl.textContent='*this tier is not discountable — list price is $0.95';approvalEl.classList.add('nodisc');}
   else if(tier.discountable&&rate<tier.mgrFloor){approvalEl.textContent='*requires VP Finance / CRO approval';approvalEl.classList.add('vpcro');}
   else if(tier.discountable&&rate<tier.repFloor){approvalEl.textContent='*requires Global Head of Sales approval';approvalEl.classList.add('ghos');}
   else{approvalEl.textContent='Within rep authority';approvalEl.classList.add('ok');}
@@ -287,3 +292,5 @@ document.getElementById('detailsToggle').addEventListener('change',function(){
 });
 updateSlider('r',0,0.95);updateSlider('e',0,0.95);
 </script>
+</body>
+</html>
