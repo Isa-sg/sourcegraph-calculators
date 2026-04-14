@@ -1,8 +1,13 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Preview</title></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identify your recommended credit volume</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif}
-.wrap{background:#111;padding:24px;max-width:960px;margin:0 auto}
+body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
+.wrap{background:#111;max-width:960px;margin:0 auto}
 .logo{font-size:13px;font-weight:600;color:#fff;letter-spacing:.08em;margin-bottom:20px;opacity:.7}
 h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .subtitle{font-size:13px;color:#888;margin-bottom:16px}
@@ -51,7 +56,7 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .range-wrap{position:relative;margin-bottom:0}
 input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:0}
 .end-labels{display:flex;justify-content:space-between;font-size:10px;color:#555;margin-top:2px}
-.approval-note{font-size:11px;font-style:italic;text-align:center;min-height:16px;margin-top:6px;transition:opacity .2s}
+.approval-note{font-size:11px;font-style:italic;text-align:center;min-height:16px;margin-top:6px;transition:opacity .2s;line-height:1.4}
 .approval-note.hidden{opacity:0;pointer-events:none}
 .approval-note.ok{color:#5cb85c}
 .approval-note.ghos{color:#e8a838}
@@ -60,50 +65,33 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
 .approval-note.hardstop{color:#e85555;font-weight:500}
 .footnote{font-size:11px;color:#555;margin-top:20px;line-height:1.9}
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <div class="logo">SOURCEGRAPH</div>
   <h1>Identify your recommended credit volume</h1>
   <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
-
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
-    <label class="toggle">
-      <input type="checkbox" id="detailsToggle" checked>
-      <div class="toggle-track"></div>
-      <div class="toggle-thumb"></div>
-    </label>
+    <label class="toggle"><input type="checkbox" id="detailsToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
   </div>
-
   <div class="tabs">
     <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
     <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
   </div>
-
   <div class="tab-content active" id="tab-renewal">
     <div class="two-col">
       <div class="card">
         <div class="card-title">Usage inputs</div>
-        <div class="field">
-          <label>Developers / users</label>
-          <input type="number" id="r-users" placeholder="e.g. 500" min="1" oninput="calcRenewal()">
-        </div>
+        <div class="field"><label>Developers / users</label><input type="number" id="r-users" placeholder="e.g. 500" min="1" oninput="calcRenewal()"></div>
         <div class="field">
           <label>Avg. credits per user per month*</label>
           <div class="hint">Included credits are 175/user/month</div>
           <input type="number" id="r-cpum" placeholder="e.g. 300" min="0" oninput="calcRenewal()">
         </div>
         <hr class="divider">
-        <div class="field">
-          <label>Total avg. credits per month*</label>
-          <div class="hint">Avg. credits per user per month x users</div>
-          <div class="calc-val" id="r-total-month">—</div>
-        </div>
-        <div class="field">
-          <label>Total annual credits*</label>
-          <div class="hint">Total avg. credits per month x 12</div>
-          <div class="calc-val" id="r-total-year">—</div>
-        </div>
+        <div class="field"><label>Total avg. credits per month*</label><div class="hint">Avg. credits per user per month x users</div><div class="calc-val" id="r-total-month">—</div></div>
+        <div class="field"><label>Total annual credits*</label><div class="hint">Total avg. credits per month x 12</div><div class="calc-val" id="r-total-year">—</div></div>
       </div>
       <div class="card">
         <div class="card-title">Our recommendation</div>
@@ -118,11 +106,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
           <div class="slider-section">
             <div class="slider-val green" id="r-rate-val">$0.95</div>
             <div class="track-outer"><div class="track-fill" id="r-track-fill" style="width:100%;background:#5cb85c"></div></div>
-            <div class="track-labels" id="r-track-labels">
-              <span class="lbl-green">Rep authority</span>
-              <span class="lbl-amber">GHOS</span>
-              <span class="lbl-red">VP Finance / CRO</span>
-            </div>
+            <div class="track-labels" id="r-track-labels"><span class="lbl-green">Rep authority</span><span class="lbl-amber">GHOS</span><span class="lbl-red">VP Finance / CRO</span></div>
             <div class="range-wrap"><input type="range" id="r-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onRenewalSlider()"></div>
             <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
             <div class="approval-note ok" id="r-approval">Within rep authority</div>
@@ -143,15 +127,11 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
     </div>
   </div>
-
   <div class="tab-content" id="tab-expansion">
     <div class="two-col">
       <div class="card">
         <div class="card-title">Usage inputs</div>
-        <div class="field">
-          <label>Developers / users</label>
-          <input type="number" id="e-users" placeholder="e.g. 500" min="1" oninput="calcExpansion()">
-        </div>
+        <div class="field"><label>Developers / users</label><input type="number" id="e-users" placeholder="e.g. 500" min="1" oninput="calcExpansion()"></div>
         <div class="field">
           <label>Add-on avg. credits per user per month</label>
           <input type="number" id="e-cpum" placeholder="e.g. 200" min="0" oninput="calcExpansion()">
@@ -162,10 +142,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
           <div class="hint">Company-wide monthly total</div>
           <input type="number" id="e-total-month-input" placeholder="e.g. 100,000" min="0" oninput="calcExpansionFromTotal()">
         </div>
-        <div class="field">
-          <label>Months remaining in contract</label>
-          <input type="number" id="e-months" placeholder="e.g. 6" min="1" max="12" oninput="calcExpansion()">
-        </div>
+        <div class="field"><label>Months remaining in contract</label><input type="number" id="e-months" placeholder="e.g. 6" min="1" max="12" oninput="calcExpansion()"></div>
       </div>
       <div class="card">
         <div class="card-title">Our recommendation</div>
@@ -178,11 +155,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
           <div class="slider-section">
             <div class="slider-val green" id="e-rate-val">$0.95</div>
             <div class="track-outer"><div class="track-fill" id="e-track-fill" style="width:100%;background:#5cb85c"></div></div>
-            <div class="track-labels" id="e-track-labels">
-              <span class="lbl-green">Rep authority</span>
-              <span class="lbl-amber">GHOS</span>
-              <span class="lbl-red">VP Finance / CRO</span>
-            </div>
+            <div class="track-labels" id="e-track-labels"><span class="lbl-green">Rep authority</span><span class="lbl-amber">GHOS</span><span class="lbl-red">VP Finance / CRO</span></div>
             <div class="range-wrap"><input type="range" id="e-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onExpansionSlider()"></div>
             <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
             <div class="approval-note ok" id="e-approval">Within rep authority</div>
@@ -202,7 +175,6 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     </div>
   </div>
 </div>
-
 <script>
 const MIN_RATE=0.60;
 const TIERS=[
@@ -288,8 +260,8 @@ function calcExpansion(){
   const months=parseFloat(document.getElementById('e-months').value)||0;
   const totalMonth=users*cpum;
   document.getElementById('e-total-month-input').value=totalMonth>0?totalMonth:'';
-  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(Math.max(100000,totalMonth*months))+' credits':'—';
   const purchase=Math.max(100000,totalMonth*months);
+  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(purchase)+' credits':'—';
   document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
   const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
@@ -341,4 +313,5 @@ document.getElementById('detailsToggle').addEventListener('change',function(){
 document.getElementById('e-total-month-input').addEventListener('input',calcExpansionFromTotal);
 updateSlider('r',0,0.95);updateSlider('e',0,0.95);
 </script>
-</body></html>
+</body>
+</html>
