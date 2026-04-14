@@ -82,4 +82,195 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <input type="number" id="users" placeholder="e.g. 500" min="1">
     </div>
     <div class="input-group">
-      <labe
+      <label>Base — total credits / month</label>
+      <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
+      <input type="number" id="baseMonth" placeholder="e.g. 1,500,000" min="0" step="1">
+    </div>
+    <div class="input-group">
+      <label>Growth — total credits / month</label>
+      <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
+      <input type="number" id="growthMonth" placeholder="e.g. 3,000,000" min="0" step="1">
+    </div>
+    <div class="input-group">
+      <label>Scale — total credits / month</label>
+      <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
+      <input type="number" id="scaleMonth" placeholder="e.g. 6,000,000" min="0" step="1">
+    </div>
+  </div>
+  <div class="inputs-note" id="inputs-note">All usage inputs are company-wide monthly totals across all users, not per individual user.</div>
+  <div class="grandfather-bar" id="grandfather-bar">
+    <span class="grandfather-label" id="grandfather-label">Grandfathered / renewing customer</span>
+    <label class="toggle"><input type="checkbox" id="grandfatherToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+  </div>
+  <div class="months-bar">
+    <span class="months-label">Mid-term commit</span>
+    <div class="input-group">
+      <label>Months remaining in contract</label>
+      <input type="number" id="monthsRemaining" placeholder="Leave blank for annual" min="1" max="11" style="width:220px;">
+    </div>
+  </div>
+  <div class="midterm-note hidden" id="midterm-note">Mid-term commit: annual credits included and annual credits expected are not applicable. Recommended commit = credits / month x months remaining.</div>
+  <table>
+    <thead>
+      <tr>
+        <td class="hdr-empty"></td>
+        <td class="hdr-base"><div class="sname base">Base</div><div class="ssub">Covers baseline use</div></td>
+        <td class="hdr-growth"><div class="sname growth">Growth</div><div class="ssub">Consistent growth + expanding integrations</div></td>
+        <td class="hdr-scale"><div class="sname scale">Scale</div><div class="ssub">Aggressive adoption for humans and integrations</div></td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="incl-label" id="incl-label">Annual credits included*</span></td>
+        <td class="vb" id="inclBase">0</td><td class="vg" id="inclGrowth">0</td><td class="vs" id="inclScale">0</td>
+      </tr>
+      <tr>
+        <td>Annual credits (expected)</td>
+        <td class="vb" id="annBase">0</td><td class="vg" id="annGrowth">0</td><td class="vs" id="annScale">0</td>
+      </tr>
+      <tr>
+        <td>Recommended commit**</td>
+        <td class="vb" id="totBase">0</td><td class="vg" id="totGrowth">0</td><td class="vs" id="totScale">0</td>
+      </tr>
+      <tr id="min-warning-row" style="display:none">
+        <td colspan="4" style="background:#1a1210;font-size:11px;color:#e8a838;font-style:italic;padding:6px 16px;border-bottom:0.5px solid #2a2a2a;">Recommended commit is below the minimum credit bucket purchase of 100,000 credits — please discuss with the customer before proceeding</td>
+      </tr>
+      <tr class="spacer"><td colspan="4"></td></tr>
+      <tr>
+        <td>Rate / 100 credits</td>
+        <td class="vb"><div class="rate-cell"><div class="tier-badge" id="tierBadgeBase"></div><input class="rate-input" id="rateBase" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalBase"></div></div></td>
+        <td class="vg"><div class="rate-cell"><div class="tier-badge" id="tierBadgeGrowth"></div><input class="rate-input" id="rateGrowth" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalGrowth"></div></div></td>
+        <td class="vs"><div class="rate-cell"><div class="tier-badge" id="tierBadgeScale"></div><input class="rate-input" id="rateScale" type="number" step="0.01" min="0" max="0.95" placeholder="$0.95"><div class="approval-msg" id="approvalScale"></div></div></td>
+      </tr>
+      <tr class="spacer"><td colspan="4"></td></tr>
+      <tr>
+        <td>Recommended commit cost</td>
+        <td class="vb" id="costBase">$0.00</td><td class="vg" id="costGrowth">$0.00</td><td class="vs" id="costScale">$0.00</td>
+      </tr>
+      <tr>
+        <td>Overage cost***</td>
+        <td class="vb" id="ovBase">$0.00</td><td class="vg" id="ovGrowth">$0.00</td><td class="vs" id="ovScale">$0.00</td>
+      </tr>
+      <tr>
+        <td>Cost savings</td>
+        <td class="vb"><span class="savings" id="savBase">$0.00</span></td>
+        <td class="vg"><span class="savings" id="savGrowth">$0.00</span></td>
+        <td class="vs"><span class="savings" id="savScale">$0.00</span></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="4" id="footer-note">*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits</td></tr>
+    </tfoot>
+  </table>
+</div>
+<script>
+const MONTHS=12,CREDITS_NEW=2100,CREDITS_GF=2520,OVERAGE_RATE_PER_100=1.10,MIN_RATE=0.60;
+const TIERS=[
+  {label:'Tier 1 (up to 2.5M credits)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
+  {label:'Tier 2 (2.5M-5M credits)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
+  {label:'Tier 3 (5M-10M credits)',min:5000000,max:9999999,repFloor:0.85,mgrFloor:0.81,discountable:true},
+  {label:'Tier 4 (10M-20M credits)',min:10000000,max:19999999,repFloor:0.78,mgrFloor:0.70,discountable:true},
+  {label:'Tier 5 (20M+ credits)',min:20000000,max:Infinity,repFloor:0.70,mgrFloor:0.60,discountable:true},
+];
+function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
+function getApproval(rate,tier,has){
+  if(!has)return null;
+  if(rate<MIN_RATE)return 'hardstop';
+  if(!tier.discountable){return rate<0.95?'nodisc':null;}
+  if(rate<tier.mgrFloor)return 'vpcro';
+  if(rate<tier.repFloor)return 'ghos';
+  return null;
+}
+function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
+function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+let internalVisible=true,isGrandfathered=false;
+function applyVisibility(){
+  const h=!internalVisible;
+  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note','grandfather-bar'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden',h);
+  });
+}
+function calc(){
+  const users=parseFloat(document.getElementById('users').value)||0;
+  const bM=parseFloat(document.getElementById('baseMonth').value)||0;
+  const gM=parseFloat(document.getElementById('growthMonth').value)||0;
+  const sM=parseFloat(document.getElementById('scaleMonth').value)||0;
+  const rB=document.getElementById('rateBase').value;
+  const rG=document.getElementById('rateGrowth').value;
+  const rS=document.getElementById('rateScale').value;
+  const monthsVal=document.getElementById('monthsRemaining').value;
+  const isMidterm=monthsVal!==''&&parseFloat(monthsVal)>0;
+  const months=isMidterm?parseFloat(monthsVal):MONTHS;
+  const creditsPerUser=isGrandfathered?CREDITS_GF:CREDITS_NEW;
+  document.getElementById('midterm-note').classList.toggle('hidden',!isMidterm);
+  const inclLabel=document.getElementById('incl-label');
+  const footerNote=document.getElementById('footer-note');
+  const gfLabel=document.getElementById('grandfather-label');
+  if(isGrandfathered){
+    inclLabel.classList.add('grandfathered');
+    inclLabel.textContent='Annual credits included* (2,520/user)';
+    gfLabel.classList.add('active');
+    footerNote.innerHTML='*Included credits = 2,520 per user per year (grandfathered), pooled &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }else{
+    inclLabel.classList.remove('grandfathered');
+    inclLabel.textContent='Annual credits included*';
+    gfLabel.classList.remove('active');
+    footerNote.innerHTML='*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }
+  let anyBelowMin=false;
+  [{sfx:'Base',cpm:bM,rv:rB},{sfx:'Growth',cpm:gM,rv:rG},{sfx:'Scale',cpm:sM,rv:rS}].forEach(({sfx,cpm,rv})=>{
+    const col=sfx==='Base'?'vb':sfx==='Growth'?'vg':'vs';
+    let included,annual,commit;
+    if(isMidterm){
+      included=null;
+      annual=null;
+      commit=cpm*months;
+    }else{
+      included=creditsPerUser*users;
+      annual=cpm*MONTHS;
+      commit=Math.max(0,annual-included);
+    }
+    if(commit>0&&commit<100000)anyBelowMin=true;
+    const tier=getTier(commit);
+    const hasCustom=rv!=='';
+    const rate=hasCustom?parseFloat(rv)||0.95:0.95;
+    const commitCost=(commit/100)*rate;
+    const overageCost=(commit/100)*OVERAGE_RATE_PER_100;
+    const savings=overageCost-commitCost;
+    const approval=getApproval(rate,tier,hasCustom);
+    const inclEl=document.getElementById('incl'+sfx);
+    inclEl.textContent=included===null?'N/A':fmt(included);
+    inclEl.className=col+(included===null?' na':'');
+    const annEl=document.getElementById('ann'+sfx);
+    annEl.textContent=annual===null?'N/A':fmt(annual);
+    annEl.className=col+(annual===null?' na':'');
+    document.getElementById('tot'+sfx).textContent=fmt(commit);
+    document.getElementById('tot'+sfx).className=col;
+    document.getElementById('cost'+sfx).textContent=fmtD(commitCost);
+    document.getElementById('ov'+sfx).textContent=fmtD(overageCost);
+    document.getElementById('sav'+sfx).textContent=fmtD(Math.max(0,savings));
+    const badge=document.getElementById('tierBadge'+sfx);
+    const msg=document.getElementById('approval'+sfx);
+    const inp=document.getElementById('rate'+sfx);
+    badge.textContent=tier.label;
+    badge.className='tier-badge'+(internalVisible?'':' hidden');
+    msg.className='approval-msg'+(internalVisible?'':' hidden');
+    inp.classList.remove('blocked','hard-blocked');
+    if(approval==='hardstop'){msg.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';msg.classList.add('hardstop');inp.classList.add('hard-blocked');}
+    else if(approval==='nodisc'){msg.textContent='*this tier is not discountable — list price is $0.95';msg.classList.add('nodisc');inp.classList.add('blocked');}
+    else if(approval==='ghos'){msg.textContent='*requires Global Head of Sales approval';msg.classList.add('ghos');}
+    else if(approval==='vpcro'){msg.textContent='*requires VP Finance / CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
+    else{msg.textContent='';}
+  });
+  document.getElementById('min-warning-row').style.display=anyBelowMin?'table-row':'none';
+  applyVisibility();
+}
+document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
+document.getElementById('grandfatherToggle').addEventListener('change',function(){isGrandfathered=this.checked;calc();});
+['users','baseMonth','growthMonth','scaleMonth','rateBase','rateGrowth','rateScale','monthsRemaining'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+calc();
+</script>
+</body>
+</html>
