@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Identify your recommended credit volume</title>
+<title>Preview</title>
+</head>
+<body>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
-.wrap{background:#111;max-width:960px;margin:0 auto}
+body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif}
+.wrap{background:#111;padding:24px;max-width:960px;margin:0 auto}
 .logo{font-size:13px;font-weight:600;color:#fff;letter-spacing:.08em;margin-bottom:20px;opacity:.7}
 h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .subtitle{font-size:13px;color:#888;margin-bottom:16px}
@@ -65,12 +67,12 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
 .approval-note.hardstop{color:#e85555;font-weight:500}
 .footnote{font-size:11px;color:#555;margin-top:20px;line-height:1.9}
 </style>
-</head>
-<body>
+
 <div class="wrap">
   <div class="logo">SOURCEGRAPH</div>
   <h1>Identify your recommended credit volume</h1>
   <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
+
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle">
@@ -79,10 +81,12 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       <div class="toggle-thumb"></div>
     </label>
   </div>
+
   <div class="tabs">
     <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
     <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
   </div>
+
   <div class="tab-content active" id="tab-renewal">
     <div class="two-col">
       <div class="card">
@@ -146,6 +150,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
     </div>
   </div>
+
   <div class="tab-content" id="tab-expansion">
     <div class="two-col">
       <div class="card">
@@ -161,8 +166,13 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
         <hr class="divider">
         <div class="field">
           <label>Total avg. credits per month</label>
-          <div class="hint">Avg. credits per user per month x users</div>
-          <div class="calc-val" id="e-total-month">—</div>
+          <div class="hint">Company-wide monthly total</div>
+          <input type="number" id="e-total-month-input" placeholder="e.g. 100,000" min="0" oninput="calcExpansionFromTotal()">
+        </div>
+        <div class="field">
+          <label>Add-on avg. per user per month (calculated)</label>
+          <div class="hint">Total avg. credits per month / users</div>
+          <div class="calc-val" id="e-per-user">—</div>
         </div>
         <div class="field">
           <label>Months remaining in contract</label>
@@ -204,6 +214,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     </div>
   </div>
 </div>
+
 <script>
 const MIN_RATE=0.60;
 const TIERS=[
@@ -287,13 +298,33 @@ function calcExpansion(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
   const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
   const months=parseFloat(document.getElementById('e-months').value)||0;
-  const totalMonth=users*cpum,purchase=Math.max(100000,totalMonth*months);
-  document.getElementById('e-total-month').textContent=fmt(totalMonth||null);
-  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  const totalMonth=users*cpum;
+  document.getElementById('e-total-month-input').value=totalMonth>0?totalMonth:'';
+  document.getElementById('e-per-user').textContent=fmt(totalMonth||null);
+  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(Math.max(100000,totalMonth*months))+' credits':'—';
+  const purchase=Math.max(100000,totalMonth*months);
   document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  const arr=purchase>0?(purchase/100)*rate:null;
-  const overage=purchase>0?(purchase/100)*1.10:null;
+  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
+  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+function calcExpansionFromTotal(){
+  const users=parseFloat(document.getElementById('e-users').value)||0;
+  const totalMonth=parseFloat(document.getElementById('e-total-month-input').value)||0;
+  const months=parseFloat(document.getElementById('e-months').value)||0;
+  const perUser=users>0&&totalMonth>0?totalMonth/users:0;
+  if(perUser>0)document.getElementById('e-cpum').value=perUser.toFixed(2);
+  document.getElementById('e-per-user').textContent=fmt(totalMonth||null);
+  const purchase=Math.max(100000,totalMonth*months);
+  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
+  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
+  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
   const saving=arr!=null&&overage!=null?overage-arr:null;
   document.getElementById('e-arr').textContent=fmtD(arr);
   document.getElementById('e-overage').textContent=fmtD(overage);
@@ -303,10 +334,11 @@ function onExpansionSlider(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
   const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
   const months=parseFloat(document.getElementById('e-months').value)||0;
-  const purchase=Math.max(100000,users*cpum*months);
+  const totalMonth=users*cpum;
+  const purchase=Math.max(100000,totalMonth*months);
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  const arr=purchase>0?(purchase/100)*rate:null;
-  const overage=purchase>0?(purchase/100)*1.10:null;
+  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
+  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
   const saving=arr!=null&&overage!=null?overage-arr:null;
   document.getElementById('e-arr').textContent=fmtD(arr);
   document.getElementById('e-overage').textContent=fmtD(overage);
@@ -320,7 +352,7 @@ function switchTab(t){
 document.getElementById('detailsToggle').addEventListener('change',function(){
   showDetails=this.checked;calcRenewal();calcExpansion();
 });
+document.getElementById('e-total-month-input').addEventListener('input',calcExpansionFromTotal);
 updateSlider('r',0,0.95);updateSlider('e',0,0.95);
 </script>
-</body>
-</html>
+</body></html>
