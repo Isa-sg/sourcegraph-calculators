@@ -130,14 +130,17 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
             <div class="approval-note ok" id="r-approval">Within rep authority</div>
           </div>
         </div>
-        <div class="result-row"><span class="result-label">Discount vs. list</span><span class="result-val" id="r-discount">0%</span></div>
+        <div class="result-row"><span class="result-label">Discount vs. overage rate</span><span class="result-val" id="r-discount">0%</span></div>
         <hr class="divider">
+        <div class="result-row"><span class="result-label">Overage cost***</span><span class="result-val" id="r-overage">—</span></div>
         <div class="result-row"><span class="result-label">Recommended commit cost</span><span class="result-val green" id="r-cost">—</span></div>
+        <div class="result-row"><span class="result-label">Cost saving</span><span class="result-val green" id="r-saving">—</span></div>
       </div>
     </div>
     <div class="footnote">
       *Includes free allocations<br>
       **Annual credits included = 2,100 per user per year, pooled<br>
+      ***Overage rate = $1.10 per 100 credits<br>
       Minimum recommended commit purchase: 100,000 credits<br>
       Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
     </div>
@@ -185,13 +188,16 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
             <div class="approval-note ok" id="e-approval">Within rep authority</div>
           </div>
         </div>
-        <div class="result-row"><span class="result-label">Discount vs. list</span><span class="result-val" id="e-discount">0%</span></div>
+        <div class="result-row"><span class="result-label">Discount vs. overage rate</span><span class="result-val" id="e-discount">0%</span></div>
         <hr class="divider">
+        <div class="result-row"><span class="result-label">Overage cost**</span><span class="result-val" id="e-overage">—</span></div>
         <div class="result-row"><span class="result-label">ARR impact at renewal</span><span class="result-val green" id="e-arr">—</span></div>
+        <div class="result-row"><span class="result-label">Cost saving</span><span class="result-val green" id="e-saving">—</span></div>
       </div>
     </div>
     <div class="footnote">
       *Minimum 100,000 credits<br>
+      **Overage rate = $1.10 per 100 credits<br>
       Credit purchase is invoiced in full at the time of purchase and covers the applicable usage period.
     </div>
   </div>
@@ -235,7 +241,7 @@ function updateSlider(p,credits,rawRate){
   if(fillColor==='#5cb85c')rateValEl.classList.add('green');
   else if(fillColor==='#e8a838')rateValEl.classList.add('amber');
   else rateValEl.classList.add('red');
-  discountEl.textContent=(((0.95-rate)/0.95)*100).toFixed(1)+'%';
+  discountEl.textContent=(((1.10-rate)/1.10)*100).toFixed(1)+'%';
   labels.className='track-labels'+(showDetails?'':' hidden');
   approvalEl.className='approval-note'+(showDetails?'':' hidden');
   if(rate<MIN_RATE){approvalEl.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';approvalEl.classList.add('hardstop');}
@@ -255,14 +261,24 @@ function calcRenewal(){
   document.getElementById('r-needed').textContent=fmt(needed||null);
   document.getElementById('r-gap').textContent=fmt(gap||null);
   const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
-  document.getElementById('r-cost').textContent=fmtD(gap>0?(gap/100)*rate:null);
+  const cost=gap>0?(gap/100)*rate:null;
+  const overage=gap>0?(gap/100)*1.10:null;
+  const saving=cost!=null&&overage!=null?overage-cost:null;
+  document.getElementById('r-cost').textContent=fmtD(cost);
+  document.getElementById('r-overage').textContent=fmtD(overage);
+  document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
 function onRenewalSlider(){
   const users=parseFloat(document.getElementById('r-users').value)||0;
   const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
   const gap=Math.max(0,(users*cpum*12)-(users*2100));
   const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
-  document.getElementById('r-cost').textContent=fmtD(gap>0?(gap/100)*rate:null);
+  const cost=gap>0?(gap/100)*rate:null;
+  const overage=gap>0?(gap/100)*1.10:null;
+  const saving=cost!=null&&overage!=null?overage-cost:null;
+  document.getElementById('r-cost').textContent=fmtD(cost);
+  document.getElementById('r-overage').textContent=fmtD(overage);
+  document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
 function calcExpansion(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
@@ -272,7 +288,12 @@ function calcExpansion(){
   document.getElementById('e-total-month').textContent=fmt(totalMonth||null);
   document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  document.getElementById('e-arr').textContent=fmtD(purchase>0?(purchase/100)*rate:null);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
 function onExpansionSlider(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
@@ -280,7 +301,12 @@ function onExpansionSlider(){
   const months=parseFloat(document.getElementById('e-months').value)||0;
   const purchase=Math.max(100000,users*cpum*months);
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  document.getElementById('e-arr').textContent=fmtD(purchase>0?(purchase/100)*rate:null);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='renewal'?0:1)));
