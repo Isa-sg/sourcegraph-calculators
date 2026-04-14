@@ -113,6 +113,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
         <div class="result-row"><span class="result-label">Annual credits included**</span><span class="result-val" id="r-included">—</span></div>
         <div class="result-row"><span class="result-label">Total annual credits*</span><span class="result-val" id="r-needed">—</span></div>
         <div class="result-row"><span class="result-label">Recommended commit</span><span class="result-val" id="r-gap">—</span></div>
+        <div id="r-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
         <hr class="divider">
         <div class="tier-row"><span id="r-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
         <div class="field">
@@ -171,6 +172,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       <div class="card">
         <div class="card-title">Our recommendation</div>
         <div class="result-row"><span class="result-label">Recommended commit*</span><span class="result-val" id="e-purchase">—</span></div>
+        <div id="e-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
         <hr class="divider">
         <div class="tier-row"><span id="e-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
         <div class="field">
@@ -260,6 +262,7 @@ function calcRenewal(){
   document.getElementById('r-included').textContent=fmt(included||null);
   document.getElementById('r-needed').textContent=fmt(needed||null);
   document.getElementById('r-gap').textContent=fmt(gap||null);
+  document.getElementById('r-min-warning').style.display=(gap>0&&gap<100000)?'block':'none';
   const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
   const cost=gap>0?(gap/100)*rate:null;
   const overage=gap>0?(gap/100)*1.10:null;
@@ -287,6 +290,7 @@ function calcExpansion(){
   const totalMonth=users*cpum,purchase=Math.max(100000,totalMonth*months);
   document.getElementById('e-total-month').textContent=fmt(totalMonth||null);
   document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
   const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
   const arr=purchase>0?(purchase/100)*rate:null;
   const overage=purchase>0?(purchase/100)*1.10:null;
