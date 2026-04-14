@@ -68,11 +68,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
   <h1>Annual commitment options (credits)</h1>
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
-    <label class="toggle">
-      <input type="checkbox" id="internalToggle" checked>
-      <div class="toggle-track"></div>
-      <div class="toggle-thumb"></div>
-    </label>
+    <label class="toggle"><input type="checkbox" id="internalToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
   </div>
   <div class="inputs-bar">
     <div class="input-group">
@@ -99,11 +95,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
   <div class="inputs-note" id="inputs-note">All usage inputs are company-wide monthly totals across all users, not per individual user.</div>
   <div class="grandfather-bar" id="grandfather-bar">
     <span class="grandfather-label" id="grandfather-label">Grandfathered / renewing customer</span>
-    <label class="toggle">
-      <input type="checkbox" id="grandfatherToggle">
-      <div class="toggle-track"></div>
-      <div class="toggle-thumb"></div>
-    </label>
+    <label class="toggle"><input type="checkbox" id="grandfatherToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
   </div>
   <table>
     <thead>
@@ -117,21 +109,18 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
     <tbody>
       <tr>
         <td><span class="incl-label" id="incl-label">Annual credits included*</span></td>
-        <td class="vb" id="inclBase">0</td>
-        <td class="vg" id="inclGrowth">0</td>
-        <td class="vs" id="inclScale">0</td>
+        <td class="vb" id="inclBase">0</td><td class="vg" id="inclGrowth">0</td><td class="vs" id="inclScale">0</td>
       </tr>
       <tr>
         <td>Annual credits (expected)</td>
-        <td class="vb" id="annBase">0</td>
-        <td class="vg" id="annGrowth">0</td>
-        <td class="vs" id="annScale">0</td>
+        <td class="vb" id="annBase">0</td><td class="vg" id="annGrowth">0</td><td class="vs" id="annScale">0</td>
       </tr>
       <tr>
         <td>Recommended commit**</td>
-        <td class="vb" id="totBase">0</td>
-        <td class="vg" id="totGrowth">0</td>
-        <td class="vs" id="totScale">0</td>
+        <td class="vb" id="totBase">0</td><td class="vg" id="totGrowth">0</td><td class="vs" id="totScale">0</td>
+      </tr>
+      <tr id="min-warning-row" style="display:none">
+        <td colspan="4" style="background:#1a1210;font-size:11px;color:#e8a838;font-style:italic;padding:6px 16px;border-bottom:0.5px solid #2a2a2a;">Minimum credit bucket purchase is 100,000 credits — recommended commit has been adjusted up accordingly</td>
       </tr>
       <tr class="spacer"><td colspan="4"></td></tr>
       <tr>
@@ -143,15 +132,11 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <tr class="spacer"><td colspan="4"></td></tr>
       <tr>
         <td>Recommended commit cost</td>
-        <td class="vb" id="costBase">$0.00</td>
-        <td class="vg" id="costGrowth">$0.00</td>
-        <td class="vs" id="costScale">$0.00</td>
+        <td class="vb" id="costBase">$0.00</td><td class="vg" id="costGrowth">$0.00</td><td class="vs" id="costScale">$0.00</td>
       </tr>
       <tr>
         <td>Overage cost***</td>
-        <td class="vb" id="ovBase">$0.00</td>
-        <td class="vg" id="ovGrowth">$0.00</td>
-        <td class="vs" id="ovScale">$0.00</td>
+        <td class="vb" id="ovBase">$0.00</td><td class="vg" id="ovGrowth">$0.00</td><td class="vs" id="ovScale">$0.00</td>
       </tr>
       <tr>
         <td>Cost savings</td>
@@ -185,8 +170,7 @@ function getApproval(rate,tier,has){
 }
 function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-let internalVisible=true;
-let isGrandfathered=false;
+let internalVisible=true,isGrandfathered=false;
 function applyVisibility(){
   const h=!internalVisible;
   ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note','grandfather-bar'].forEach(id=>{
@@ -216,10 +200,13 @@ function calc(){
     gfLabel.classList.remove('active');
     footerNote.innerHTML='*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
   }
+  let anyBelowMin=false;
   [{sfx:'Base',cpm:bM,rv:rB},{sfx:'Growth',cpm:gM,rv:rG},{sfx:'Scale',cpm:sM,rv:rS}].forEach(({sfx,cpm,rv})=>{
     const included=creditsPerUser*users;
     const annual=cpm*MONTHS;
-    const commit=Math.max(0,annual-included);
+    const commitRaw=Math.max(0,annual-included);
+    if(commitRaw>0&&commitRaw<100000)anyBelowMin=true;
+    const commit=commitRaw>0?Math.max(100000,commitRaw):0;
     const tier=getTier(commit);
     const hasCustom=rv!=='';
     const rate=hasCustom?parseFloat(rv)||0.95:0.95;
@@ -246,6 +233,7 @@ function calc(){
     else if(approval==='vpcro'){msg.textContent='*requires VP Finance / CRO approval';msg.classList.add('vpcro');inp.classList.add('blocked');}
     else{msg.textContent='';}
   });
+  document.getElementById('min-warning-row').style.display=anyBelowMin?'table-row':'none';
   applyVisibility();
 }
 document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
