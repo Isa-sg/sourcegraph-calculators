@@ -34,13 +34,17 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .field input[type=number]:focus{border-color:#666}
 .field .calc-val{font-size:15px;font-weight:500;color:#fff;padding:8px 0}
 .divider{border:none;border-top:0.5px solid #2a2a2a;margin:14px 0}
+.grandfather-bar{display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:14px}
+.grandfather-label{font-size:11px;color:#888}
+.grandfather-label.active{color:#e8a838}
 .result-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:0.5px solid #222}
 .result-row:last-child{border-bottom:none}
 .result-label{font-size:12px;color:#888}
 .result-val{font-size:13px;font-weight:500;color:#fff;text-align:right}
 .result-val.green{color:#5cb85c}
-.tier-row{min-height:28px;margin-bottom:8px}
+.tier-row{min-height:28px;margin-bottom:4px}
 .tier-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#1e2a1e;color:#5cb85c;border:0.5px solid #2d4a2d;}
+.cumulative-note{font-size:10px;color:#5cb85c;font-style:italic;margin-bottom:8px;min-height:14px}
 .slider-section{margin-top:4px}
 .slider-val{font-size:22px;font-weight:500;text-align:center;margin:6px 0 10px;transition:color .15s}
 .slider-val.green{color:#5cb85c}
@@ -89,13 +93,17 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
           <div class="hint">Included credits are 175/user/month</div>
           <input type="number" id="r-cpum" placeholder="e.g. 300" min="0" oninput="calcRenewal()">
         </div>
+        <div class="grandfather-bar">
+          <span class="grandfather-label" id="r-grandfather-label">Grandfathered / renewing customer</span>
+          <label class="toggle"><input type="checkbox" id="r-grandfatherToggle" onchange="calcRenewal()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
         <hr class="divider">
         <div class="field"><label>Total avg. credits per month*</label><div class="hint">Avg. credits per user per month x users</div><div class="calc-val" id="r-total-month">—</div></div>
         <div class="field"><label>Total annual credits*</label><div class="hint">Total avg. credits per month x 12</div><div class="calc-val" id="r-total-year">—</div></div>
       </div>
       <div class="card">
         <div class="card-title">Our recommendation</div>
-        <div class="result-row"><span class="result-label">Annual credits included**</span><span class="result-val" id="r-included">—</span></div>
+        <div class="result-row"><span class="result-label" id="r-included-label">Annual credits included**</span><span class="result-val" id="r-included">—</span></div>
         <div class="result-row"><span class="result-label">Total annual credits*</span><span class="result-val" id="r-needed">—</span></div>
         <div class="result-row"><span class="result-label">Recommended commit</span><span class="result-val" id="r-gap">—</span></div>
         <div id="r-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
@@ -119,7 +127,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
         <div class="result-row"><span class="result-label">Cost saving</span><span class="result-val green" id="r-saving">—</span></div>
       </div>
     </div>
-    <div class="footnote">
+    <div class="footnote" id="r-footnote">
       *Includes free allocations<br>
       **Annual credits included = 2,100 per user per year, pooled<br>
       ***Overage rate = $1.10 per 100 credits<br>
@@ -132,10 +140,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       <div class="card">
         <div class="card-title">Usage inputs</div>
         <div class="field"><label>Developers / users</label><input type="number" id="e-users" placeholder="e.g. 500" min="1" oninput="calcExpansion()"></div>
-        <div class="field">
-          <label>Add-on avg. credits per user per month</label>
-          <input type="number" id="e-cpum" placeholder="e.g. 200" min="0" oninput="calcExpansion()">
-        </div>
+        <div class="field"><label>Add-on avg. credits per user per month</label><input type="number" id="e-cpum" placeholder="e.g. 200" min="0" oninput="calcExpansion()"></div>
         <hr class="divider">
         <div class="field">
           <label>Add-on avg. credits per month</label>
@@ -143,6 +148,11 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
           <input type="number" id="e-total-month-input" placeholder="e.g. 100,000" min="0" oninput="calcExpansionFromTotal()">
         </div>
         <div class="field"><label>Months remaining in contract</label><input type="number" id="e-months" placeholder="e.g. 6" min="1" max="12" oninput="calcExpansion()"></div>
+        <div class="field">
+          <label>Credits already purchased this term</label>
+          <div class="hint">Used to determine cumulative tier discount</div>
+          <input type="number" id="e-existing" placeholder="e.g. 2,000,000" min="0" oninput="calcExpansion()">
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Our recommendation</div>
@@ -150,6 +160,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
         <div id="e-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
         <hr class="divider">
         <div class="tier-row"><span id="e-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
+        <div class="cumulative-note" id="e-cumulative-note"></div>
         <div class="field">
           <label>Rate / 100 credits</label>
           <div class="slider-section">
@@ -171,12 +182,12 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     <div class="footnote">
       *Minimum 100,000 credits<br>
       **Overage rate = $1.10 per 100 credits<br>
-      Credit purchase is invoiced in full at the time of purchase and covers the applicable usage period.
+      Tier is based on cumulative credits (existing purchased + new commit). Credit purchase is invoiced in full at time of purchase.
     </div>
   </div>
 </div>
 <script>
-const MIN_RATE=0.60;
+const MIN_RATE=0.60,CREDITS_NEW=2100,CREDITS_GF=2520;
 const TIERS=[
   {label:'Tier 1 (up to 2.5M)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
   {label:'Tier 2 (2.5M-5M)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
@@ -227,7 +238,15 @@ function updateSlider(p,credits,rawRate){
 function calcRenewal(){
   const users=parseFloat(document.getElementById('r-users').value)||0;
   const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
-  const totalMonth=users*cpum,totalYear=totalMonth*12,included=users*2100,needed=totalYear,gap=Math.max(0,needed-included);
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
+  const gfLabel=document.getElementById('r-grandfather-label');
+  const inclLabel=document.getElementById('r-included-label');
+  const footnote=document.getElementById('r-footnote');
+  gfLabel.classList.toggle('active',isGF);
+  if(isGF){inclLabel.textContent='Annual credits included** (2,520/user)';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,520 per user per year (grandfathered), pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
+  else{inclLabel.textContent='Annual credits included**';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,100 per user per year, pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
+  const totalMonth=users*cpum,totalYear=totalMonth*12,included=users*creditsPerUser,needed=totalYear,gap=Math.max(0,needed-included);
   document.getElementById('r-total-month').textContent=fmt(totalMonth||null);
   document.getElementById('r-total-year').textContent=fmt(totalYear||null);
   document.getElementById('r-included').textContent=fmt(included||null);
@@ -245,7 +264,9 @@ function calcRenewal(){
 function onRenewalSlider(){
   const users=parseFloat(document.getElementById('r-users').value)||0;
   const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
-  const gap=Math.max(0,(users*cpum*12)-(users*2100));
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
+  const gap=Math.max(0,(users*cpum*12)-(users*creditsPerUser));
   const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
   const cost=gap>0?(gap/100)*rate:null;
   const overage=gap>0?(gap/100)*1.10:null;
@@ -258,14 +279,19 @@ function calcExpansion(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
   const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
   const months=parseFloat(document.getElementById('e-months').value)||0;
+  const existing=parseFloat(document.getElementById('e-existing').value)||0;
   const totalMonth=users*cpum;
   document.getElementById('e-total-month-input').value=totalMonth>0?totalMonth:'';
-  const purchase=Math.max(100000,totalMonth*months);
-  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(purchase)+' credits':'—';
-  document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
-  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
-  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(purchase>0&&purchase<100000)?'block':'none';
+  const cNote=document.getElementById('e-cumulative-note');
+  if(existing>0&&purchase>0&&showDetails){cNote.textContent='Cumulative: '+fmt(cumulative)+' credits ('+fmt(existing)+' existing + '+fmt(purchase)+' new)';}
+  else{cNote.textContent='';}
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
   const saving=arr!=null&&overage!=null?overage-arr:null;
   document.getElementById('e-arr').textContent=fmtD(arr);
   document.getElementById('e-overage').textContent=fmtD(overage);
@@ -275,14 +301,19 @@ function calcExpansionFromTotal(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
   const totalMonth=parseFloat(document.getElementById('e-total-month-input').value)||0;
   const months=parseFloat(document.getElementById('e-months').value)||0;
+  const existing=parseFloat(document.getElementById('e-existing').value)||0;
   const perUser=users>0&&totalMonth>0?totalMonth/users:0;
   if(perUser>0)document.getElementById('e-cpum').value=perUser.toFixed(2);
-  const purchase=Math.max(100000,totalMonth*months);
-  document.getElementById('e-purchase').textContent=totalMonth>0?fmt(purchase)+' credits':'—';
-  document.getElementById('e-min-warning').style.display=(totalMonth>0&&totalMonth*months<100000)?'block':'none';
-  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
-  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(purchase>0&&purchase<100000)?'block':'none';
+  const cNote=document.getElementById('e-cumulative-note');
+  if(existing>0&&purchase>0&&showDetails){cNote.textContent='Cumulative: '+fmt(cumulative)+' credits ('+fmt(existing)+' existing + '+fmt(purchase)+' new)';}
+  else{cNote.textContent='';}
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
   const saving=arr!=null&&overage!=null?overage-arr:null;
   document.getElementById('e-arr').textContent=fmtD(arr);
   document.getElementById('e-overage').textContent=fmtD(overage);
@@ -292,11 +323,13 @@ function onExpansionSlider(){
   const users=parseFloat(document.getElementById('e-users').value)||0;
   const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
   const months=parseFloat(document.getElementById('e-months').value)||0;
+  const existing=parseFloat(document.getElementById('e-existing').value)||0;
   const totalMonth=users*cpum;
-  const purchase=Math.max(100000,totalMonth*months);
-  const rate=updateSlider('e',purchase,document.getElementById('e-rate-slider').value);
-  const arr=purchase>0&&totalMonth>0?(purchase/100)*rate:null;
-  const overage=purchase>0&&totalMonth>0?(purchase/100)*1.10:null;
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
   const saving=arr!=null&&overage!=null?overage-arr:null;
   document.getElementById('e-arr').textContent=fmtD(arr);
   document.getElementById('e-overage').textContent=fmtD(overage);
@@ -311,7 +344,9 @@ document.getElementById('detailsToggle').addEventListener('change',function(){
   showDetails=this.checked;calcRenewal();calcExpansion();
 });
 document.getElementById('e-total-month-input').addEventListener('input',calcExpansionFromTotal);
+document.getElementById('e-existing').addEventListener('input',calcExpansion);
 updateSlider('r',0,0.95);updateSlider('e',0,0.95);
+calcRenewal();
 </script>
 </body>
 </html>
