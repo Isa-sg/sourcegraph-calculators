@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Annual commitment options (credits)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
@@ -17,6 +18,14 @@ h1{font-size:18px;font-weight:500;color:#fff;margin-bottom:4px}
 .toggle input:checked+.toggle-track{background:#5cb85c}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+
+/* Screenshot button */
+.screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
+.screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
+.screenshot-btn:active{background:#222}
+.screenshot-btn svg{flex-shrink:0}
+.screenshot-btn.capturing{border-color:#5cb85c;color:#5cb85c}
+
 .inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;display:flex;gap:24px;margin-bottom:6px;flex-wrap:wrap;align-items:flex-end}
 .inputs-note{font-size:11px;color:#666;margin-bottom:8px;padding-left:2px;transition:opacity .2s}
 .inputs-note.hidden{opacity:0;pointer-events:none}
@@ -71,11 +80,20 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="calculator-wrap">
   <h1>Annual commitment options (credits)</h1>
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle"><input type="checkbox" id="internalToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+
+    <!-- Screenshot button -->
+    <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Take a screenshot">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Take a screenshot
+    </button>
   </div>
   <div class="inputs-bar">
     <div class="input-group">
@@ -289,6 +307,46 @@ document.getElementById('grandfatherToggle').addEventListener('change',function(
   document.getElementById(id).addEventListener('input',calc);
 });
 calc();
+
+// Screenshot function
+async function takeScreenshot(){
+  const btn=document.getElementById('screenshotBtn');
+  btn.classList.add('capturing');
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Capturing...`;
+  try {
+    const wrap=document.getElementById('calculator-wrap');
+    btn.style.visibility='hidden';
+    await new Promise(r=>setTimeout(r,50));
+    const rawCanvas=await html2canvas(wrap,{
+      backgroundColor:'#111111',
+      scale:2,
+      useCORS:true,
+      logging:false,
+    });
+    btn.style.visibility='visible';
+    const margin=40*2;
+    const canvas=document.createElement('canvas');
+    canvas.width=rawCanvas.width+margin*2;
+    canvas.height=rawCanvas.height+margin*2;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#111111';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(rawCanvas,margin,margin);
+    const link=document.createElement('a');
+    const now=new Date();
+    const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    link.download='sourcegraph-commitment-options-'+ts+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  } catch(e){
+    console.error('Screenshot failed:',e);
+    btn.style.visibility='visible';
+    alert('Screenshot failed. Please try again.');
+  } finally {
+    btn.classList.remove('capturing');
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Take a screenshot`;
+  }
+}
 </script>
 </body>
 </html>
