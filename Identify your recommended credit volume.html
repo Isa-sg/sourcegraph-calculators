@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Identify your recommended credit volume</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
@@ -19,6 +20,14 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .toggle input:checked+.toggle-track{background:#5cb85c}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+
+/* Screenshot button */
+.screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
+.screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
+.screenshot-btn:active{background:#222}
+.screenshot-btn svg{flex-shrink:0}
+.screenshot-btn.capturing{border-color:#5cb85c;color:#5cb85c}
+
 .tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:0.5px solid #333}
 .tab{padding:10px 20px;font-size:13px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
 .tab.active{color:#fff;border-bottom-color:#fff}
@@ -71,13 +80,22 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="calculator-wrap">
   <div class="logo">SOURCEGRAPH</div>
   <h1>Identify your recommended credit volume</h1>
   <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle"><input type="checkbox" id="detailsToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+
+    <!-- Screenshot button -->
+    <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Save as image">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Take a screenshot
+    </button>
   </div>
   <div class="tabs">
     <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
@@ -347,6 +365,46 @@ document.getElementById('e-total-month-input').addEventListener('input',calcExpa
 document.getElementById('e-existing').addEventListener('input',calcExpansion);
 updateSlider('r',0,0.95);updateSlider('e',0,0.95);
 calcRenewal();
+
+// Screenshot function
+async function takeScreenshot(){
+  const btn=document.getElementById('screenshotBtn');
+  btn.classList.add('capturing');
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Capturing...`;
+  try {
+    const wrap=document.getElementById('calculator-wrap');
+    btn.style.visibility='hidden';
+    await new Promise(r=>setTimeout(r,50)); // let browser repaint before capture
+    const rawCanvas=await html2canvas(wrap,{
+      backgroundColor:'#111111',
+      scale:2,
+      useCORS:true,
+      logging:false,
+    });
+    const margin=40*2; // 40px margin at 2x scale
+    const canvas=document.createElement('canvas');
+    canvas.width=rawCanvas.width+margin*2;
+    canvas.height=rawCanvas.height+margin*2;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#111111';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(rawCanvas,margin,margin);
+    btn.style.visibility='visible';
+    const link=document.createElement('a');
+    const now=new Date();
+    const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    link.download='sourcegraph-credit-calculator-'+ts+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  } catch(e){
+    console.error('Screenshot failed:',e);
+    btn.style.visibility='visible';
+    alert('Screenshot failed. Please try again.');
+  } finally {
+    btn.classList.remove('capturing');
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Take a screenshot`;
+  }
+}
 </script>
 </body>
 </html>
