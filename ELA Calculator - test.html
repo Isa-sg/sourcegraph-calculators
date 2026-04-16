@@ -96,10 +96,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       Take a screenshot
     </button>
   </div>
-
-  <!-- Single inputs bar — morphs between standard and ELA mode -->
   <div class="inputs-bar" id="inputs-bar">
-    <!-- Standard row -->
     <div class="inputs-row" id="std-row">
       <div class="input-group">
         <label>Number of users</label>
@@ -122,8 +119,6 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
         <input type="number" id="scaleMonth" placeholder="e.g. 6,000,000" min="0" step="1">
       </div>
     </div>
-
-    <!-- ELA row 1: pricing inputs + derived values -->
     <div class="inputs-row" id="ela-row-1" style="display:none;">
       <div class="input-group">
         <label style="color:#60a5fa;">Estimated users (TAM)</label>
@@ -133,7 +128,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       <div class="input-group">
         <label style="color:#60a5fa;">PPU discount (%)</label>
         <div class="sublabel">Standard range: 10–20%</div>
-        <input type="number" id="elaDiscount" placeholder="e.g. 15" min="0" max="100" value="15">
+        <input type="number" id="elaDiscount" placeholder="e.g. 15" min="0" max="100">
         <div id="elaDiscountWarning" style="display:none;font-size:10px;color:#e8a838;font-style:italic;margin-top:3px;max-width:150px;line-height:1.4;">Outside standard ELA discount range (10–20%) — confirm with Deal Desk</div>
       </div>
       <div class="ela-derived">
@@ -149,8 +144,6 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
         <div class="ela-derived-val" id="elaIncludedCreditsMonth">—</div>
       </div>
     </div>
-
-    <!-- ELA row 2: usage inputs -->
     <div class="inputs-row-2" id="ela-row-2" style="display:none;">
       <div style="display:flex;flex-direction:column;gap:4px;">
         <div style="font-size:10px;font-weight:500;letter-spacing:.06em;color:#60a5fa;text-transform:uppercase;">Expected usage — total credits / month</div>
@@ -172,18 +165,13 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       </div>
     </div>
   </div>
-
   <div class="inputs-note" id="inputs-note">All usage inputs are company-wide monthly totals across all users, not per individual user.</div>
-
-  <!-- Grandfathered + ELA toggles -->
   <div class="grandfather-bar" id="grandfather-bar">
     <span class="grandfather-label" id="grandfather-label">Grandfathered / renewing customer</span>
     <label class="toggle"><input type="checkbox" id="grandfatherToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
     <span class="grandfather-label" style="margin-left:16px;">ELA</span>
     <label class="toggle"><input type="checkbox" id="elaToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
   </div>
-
-  <!-- Mid-term -->
   <div class="months-bar">
     <span class="months-label">Mid-term commit</span>
     <div class="input-group">
@@ -196,7 +184,6 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
     </div>
   </div>
   <div class="midterm-note" id="midterm-note">Mid-term commit: annual credits included and annual credits expected are not applicable. Tier is based on cumulative credits (existing + new commit).</div>
-
   <table>
     <thead>
       <tr>
@@ -272,7 +259,6 @@ function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtCurrency(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
 let internalVisible=true,isGrandfathered=false,isELA=false;
-
 function switchMode(){
   const bar=document.getElementById('inputs-bar');
   bar.classList.toggle('ela-mode',isELA);
@@ -280,13 +266,9 @@ function switchMode(){
   document.getElementById('ela-row-1').style.display=isELA?'flex':'none';
   document.getElementById('ela-row-2').style.display=isELA?'flex':'none';
   document.getElementById('inputs-note').style.display=isELA?'none':'block';
-  // grandfathered: hide when ELA on
-  // When ELA is on, hide grandfathered label+toggle but keep the bar (it has the ELA toggle)
   document.getElementById('grandfather-label').style.display=isELA?'none':'';
   document.getElementById('grandfatherToggle').closest('label').style.display=isELA?'none':'';
-  document.getElementById('grandfather-bar').previousElementSibling; // noop, bar always visible
 }
-
 function applyVisibility(){
   const h=!internalVisible;
   ['sublabel-base','sublabel-growth','sublabel-scale'].forEach(id=>{
@@ -294,11 +276,9 @@ function applyVisibility(){
   });
   if(!isELA){
     document.getElementById('inputs-note').style.display=h?'none':'block';
-    // grandfather-bar: show/hide based on details toggle, but never fully gone
     document.getElementById('grandfather-bar').classList.toggle('hidden',h);
   }
 }
-
 function calcELADerived(){
   const tam=parseFloat(document.getElementById('elaTAM').value)||0;
   const discEl=document.getElementById('elaDiscount');
@@ -315,7 +295,6 @@ function calcELADerived(){
   warn.style.display=(hasDisc&&(disc<10||disc>20))?'block':'none';
   return {elaPrice,includedCredits};
 }
-
 function calc(){
   const monthsVal=document.getElementById('monthsRemaining').value;
   const isMidterm=monthsVal!==''&&parseFloat(monthsVal)>0;
@@ -332,13 +311,15 @@ function calc(){
   if(isELA){
     inclLabel.className='incl-label ela';
     inclLabel.textContent='Annual credits included* (ELA)';
-    footerNote.innerHTML='*ELA included credits = estimated users x discounted PPU x 4 credits per $1, pooled. Seats are unlimited, credits are not. &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
-  } else if(isGrandfathered){
+    footerNote.innerHTML=internalVisible
+      ?'*ELA included credits = estimated users x discounted PPU x 4 credits per $1, pooled. Seats are unlimited, credits are not. &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits'
+      :'*Seats are unlimited, credits are not. &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }else if(isGrandfathered){
     inclLabel.className='incl-label grandfathered';
     inclLabel.textContent='Annual credits included* (2,520/user)';
     gfLabel.classList.add('active');
     footerNote.innerHTML='*Included credits = 2,520 per user per year (grandfathered), pooled &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
-  } else {
+  }else{
     inclLabel.className='incl-label';
     inclLabel.textContent='Annual credits included*';
     gfLabel.classList.remove('active');
@@ -398,7 +379,6 @@ function calc(){
   document.getElementById('min-warning-row').style.display=anyBelowMin?'table-row':'none';
   applyVisibility();
 }
-
 document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
 document.getElementById('grandfatherToggle').addEventListener('change',function(){isGrandfathered=this.checked;calc();});
 document.getElementById('elaToggle').addEventListener('change',function(){
@@ -412,7 +392,6 @@ document.getElementById('elaToggle').addEventListener('change',function(){
   const el=document.getElementById(id);if(el)el.addEventListener('input',calc);
 });
 calc();
-
 async function takeScreenshot(){
   const btn=document.getElementById('screenshotBtn');
   btn.classList.add('capturing');
