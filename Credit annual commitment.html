@@ -18,31 +18,34 @@ h1{font-size:18px;font-weight:500;color:#fff;margin-bottom:4px}
 .toggle input:checked+.toggle-track{background:#5cb85c}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
-
-/* Screenshot button */
 .screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
 .screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
 .screenshot-btn:active{background:#222}
 .screenshot-btn svg{flex-shrink:0}
 .screenshot-btn.capturing{border-color:#5cb85c;color:#5cb85c}
-
-.inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;display:flex;gap:24px;margin-bottom:6px;flex-wrap:wrap;align-items:flex-end}
-.inputs-note{font-size:11px;color:#666;margin-bottom:8px;padding-left:2px;transition:opacity .2s}
-.inputs-note.hidden{opacity:0;pointer-events:none}
-.grandfather-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-left:2px;transition:opacity .2s}
-.grandfather-bar.hidden{opacity:0;pointer-events:none}
+.inputs-bar{background:#1a1a1a;border:0.5px solid #333;border-radius:8px;padding:16px 20px;margin-bottom:6px}
+.inputs-bar.ela-mode{border-color:#1e3a5f;background:#111e2e}
+.inputs-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end}
+.inputs-row-2{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;padding-top:14px;border-top:0.5px solid #1e2a1e}
+.inputs-note{font-size:11px;color:#666;margin-bottom:8px;padding-left:2px}
+.grandfather-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-left:2px}
+.grandfather-bar.hidden{opacity:0;pointer-events:none;height:0;margin:0;overflow:hidden}
 .grandfather-label{font-size:11px;color:#888}
 .grandfather-label.active{color:#e8a838}
 .input-group{display:flex;flex-direction:column;gap:4px}
 .input-group label{font-size:10px;font-weight:500;letter-spacing:.06em;color:#888;text-transform:uppercase}
-.sublabel{font-size:10px;color:#555;transition:opacity .2s;min-height:14px}
+.sublabel{font-size:10px;color:#555;min-height:14px}
 .sublabel.hidden{opacity:0;pointer-events:none}
-.input-group input{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:150px;outline:none}
-.input-group input:focus{border-color:#666}
+.input-group input[type=text]{background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;width:150px;outline:none;font-family:'Inter',sans-serif}
+.input-group input[type=text]:focus{border-color:#666}
+.input-group input[type=text]::placeholder{color:#444}
+.ela-derived{display:flex;flex-direction:column;gap:4px;justify-content:flex-end}
+.ela-derived-label{font-size:10px;color:#555;letter-spacing:.04em;text-transform:uppercase}
+.ela-derived-val{font-size:15px;font-weight:500;color:#60a5fa;padding:4px 0}
 .months-bar{background:#1a2a1a;border:0.5px solid #2a3a2a;border-radius:8px;padding:12px 20px;display:flex;align-items:flex-end;gap:24px;margin-bottom:6px;flex-wrap:wrap}
 .months-label{font-size:11px;font-weight:500;color:#5cb85c;padding-bottom:12px}
-.midterm-note{font-size:11px;color:#e8a838;font-style:italic;margin-bottom:16px;padding-left:2px}
-.midterm-note.hidden{display:none}
+.midterm-note{font-size:11px;color:#e8a838;font-style:italic;margin-bottom:8px;padding-left:2px;display:none}
+.midterm-note.visible{display:block}
 table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:0.5px solid #333}
 .hdr-empty{background:#1a1a1a;width:200px}
 .hdr-base{background:#1e2a1e;padding:14px 16px;text-align:center;border-left:0.5px solid #333}
@@ -76,6 +79,7 @@ tbody tr td:first-child{color:#bbb;font-weight:500;background:#1a1a1a;width:200p
 .savings{color:#5cb85c;font-weight:500}
 .incl-label{transition:color .2s}
 .incl-label.grandfathered{color:#e8a838}
+.incl-label.ela{color:#60a5fa}
 tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-top:0.5px solid #2a2a2a}
 </style>
 </head>
@@ -85,8 +89,6 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle"><input type="checkbox" id="internalToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-
-    <!-- Screenshot button -->
     <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Take a screenshot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -95,45 +97,90 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
       Take a screenshot
     </button>
   </div>
-  <div class="inputs-bar">
-    <div class="input-group">
-      <label>Number of users</label>
-      <div class="sublabel" id="sublabel-users">&nbsp;</div>
-      <input type="number" id="users" placeholder="e.g. 500" min="1">
+  <div class="inputs-bar" id="inputs-bar">
+    <div class="inputs-row" id="std-row">
+      <div class="input-group">
+        <label>Number of users</label>
+        <div class="sublabel" id="sublabel-users">&nbsp;</div>
+        <input type="text" id="users" placeholder="e.g. 500" oninput="onNumInput(this)" onfocus="onNumFocus(this)">
+      </div>
+      <div class="input-group">
+        <label>Base — total credits / month</label>
+        <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
+        <input type="text" id="baseMonth" placeholder="e.g. 1,500,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)">
+      </div>
+      <div class="input-group">
+        <label>Growth — total credits / month</label>
+        <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
+        <input type="text" id="growthMonth" placeholder="e.g. 3,000,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)">
+      </div>
+      <div class="input-group">
+        <label>Scale — total credits / month</label>
+        <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
+        <input type="text" id="scaleMonth" placeholder="e.g. 6,000,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)">
+      </div>
     </div>
-    <div class="input-group">
-      <label>Base — total credits / month</label>
-      <div class="sublabel" id="sublabel-base">Company-wide, not per user</div>
-      <input type="number" id="baseMonth" placeholder="e.g. 1,500,000" min="0" step="1">
+    <div class="inputs-row" id="ela-row-1" style="display:none;">
+      <div class="input-group">
+        <label style="color:#60a5fa;">Estimated users (TAM)</label>
+        <div class="sublabel">Total addressable developers</div>
+        <input type="text" id="elaTAM" placeholder="e.g. 2,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)">
+      </div>
+      <div class="input-group">
+        <label style="color:#60a5fa;">PPU discount (%)</label>
+        <div class="sublabel">Standard range: 10–35%</div>
+        <input type="text" id="elaDiscount" placeholder="e.g. 15" oninput="onNumInputDecimal(this)" onfocus="onNumFocus(this)">
+        <div id="elaDiscountWarning" style="display:none;font-size:10px;color:#e8a838;font-style:italic;margin-top:3px;max-width:150px;line-height:1.4;">Outside standard ELA discount range (10–35%) — confirm with Deal Desk</div>
+      </div>
+      <div class="ela-derived">
+        <div class="ela-derived-label">Suggested ELA price / year</div>
+        <div class="ela-derived-val" id="elaSuggestedPrice">—</div>
+      </div>
+      <div class="ela-derived">
+        <div class="ela-derived-label">Included credits / year</div>
+        <div class="ela-derived-val" id="elaIncludedCredits">—</div>
+      </div>
     </div>
-    <div class="input-group">
-      <label>Growth — total credits / month</label>
-      <div class="sublabel" id="sublabel-growth">Company-wide, med. spikes</div>
-      <input type="number" id="growthMonth" placeholder="e.g. 3,000,000" min="0" step="1">
-    </div>
-    <div class="input-group">
-      <label>Scale — total credits / month</label>
-      <div class="sublabel" id="sublabel-scale">Company-wide, high spikes</div>
-      <input type="number" id="scaleMonth" placeholder="e.g. 6,000,000" min="0" step="1">
+    <div class="inputs-row-2" id="ela-row-2" style="display:none;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10px;font-weight:500;letter-spacing:.06em;color:#60a5fa;text-transform:uppercase;">Expected usage — total credits / month</div>
+        <div style="font-size:10px;color:#555;min-height:14px;">Company-wide</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;">
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:10px;color:#5cb85c;">Base</span>
+            <input type="text" id="elaBaseMonth" placeholder="e.g. 1,500,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)" style="background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:13px;padding:7px 9px;width:160px;outline:none;font-family:'Inter',sans-serif;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:10px;color:#e8a838;">Growth</span>
+            <input type="text" id="elaGrowthMonth" placeholder="e.g. 3,000,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)" style="background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:13px;padding:7px 9px;width:160px;outline:none;font-family:'Inter',sans-serif;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:10px;color:#e85555;">Scale</span>
+            <input type="text" id="elaScaleMonth" placeholder="e.g. 6,000,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)" style="background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:13px;padding:7px 9px;width:160px;outline:none;font-family:'Inter',sans-serif;">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="inputs-note" id="inputs-note">All usage inputs are company-wide monthly totals across all users, not per individual user.</div>
   <div class="grandfather-bar" id="grandfather-bar">
     <span class="grandfather-label" id="grandfather-label">Grandfathered / renewing customer</span>
     <label class="toggle"><input type="checkbox" id="grandfatherToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+    <span class="grandfather-label" style="margin-left:16px;">ELA (beta testing)</span>
+    <label class="toggle"><input type="checkbox" id="elaToggle"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
   </div>
   <div class="months-bar">
     <span class="months-label">Mid-term commit</span>
     <div class="input-group">
       <label>Months remaining in contract</label>
-      <input type="number" id="monthsRemaining" placeholder="Leave blank for annual" min="1" max="11" style="width:220px;">
+      <input type="text" id="monthsRemaining" placeholder="Leave blank for annual" oninput="onNumInput(this)" onfocus="onNumFocus(this)" style="width:220px;">
     </div>
     <div class="input-group" id="existing-credits-group" style="opacity:0.4;pointer-events:none;">
       <label>Credits already purchased this term</label>
-      <input type="number" id="existingCredits" placeholder="e.g. 2,000,000" min="0" style="width:220px;">
+      <input type="text" id="existingCredits" placeholder="e.g. 2,000,000" oninput="onNumInput(this)" onfocus="onNumFocus(this)" style="width:220px;">
     </div>
   </div>
-  <div class="midterm-note hidden" id="midterm-note">Mid-term commit: annual credits included and annual credits expected are not applicable. Tier is based on cumulative credits (existing + new commit).</div>
+  <div class="midterm-note" id="midterm-note">Mid-term commit: annual credits included and annual credits expected are not applicable. Tier is based on cumulative credits (existing + new commit).</div>
   <table>
     <thead>
       <tr>
@@ -188,7 +235,7 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
   </table>
 </div>
 <script>
-const MONTHS=12,CREDITS_NEW=2100,CREDITS_GF=2520,OVERAGE_RATE_PER_100=1.10,MIN_RATE=0.60;
+const MONTHS=12,CREDITS_NEW=2100,CREDITS_GF=2520,PPU=528,OVERAGE_RATE_PER_100=1.10,MIN_RATE=0.60;
 const TIERS=[
   {label:'Tier 1 (up to 2.5M credits)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
   {label:'Tier 2 (2.5M-5M credits)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
@@ -207,57 +254,121 @@ function getApproval(rate,tier,has){
 }
 function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-let internalVisible=true,isGrandfathered=false;
+function fmtCurrency(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+/* ── Comma-formatting helpers ── */
+function getRawVal(id){
+  const v=document.getElementById(id).value.replace(/,/g,'');
+  return parseFloat(v)||0;
+}
+function onNumInput(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  const formatted=raw===''?'':parseInt(raw,10).toLocaleString('en-US');
+  const cursorPos=el.selectionStart;
+  const oldBeforeCursor=el.value.slice(0,cursorPos);
+  const digitsBeforeCursor=oldBeforeCursor.replace(/[^0-9]/g,'').length;
+  el.value=formatted;
+  let newPos=0,digits=0;
+  while(newPos<formatted.length&&digits<digitsBeforeCursor){
+    if(formatted[newPos]>='0'&&formatted[newPos]<='9')digits++;
+    newPos++;
+  }
+  el.setSelectionRange(newPos,newPos);
+  calc();
+}
+// For decimal fields (like % discount) — allow digits and one decimal point
+function onNumInputDecimal(el){
+  const raw=el.value.replace(/[^0-9.]/g,'');
+  // Only allow one decimal point
+  const parts=raw.split('.');
+  el.value=parts.length>1?parts[0]+'.'+parts.slice(1).join(''):raw;
+  calc();
+}
+function onNumFocus(el){}
+
+let internalVisible=true,isGrandfathered=false,isELA=false;
+function switchMode(){
+  const bar=document.getElementById('inputs-bar');
+  bar.classList.toggle('ela-mode',isELA);
+  document.getElementById('std-row').style.display=isELA?'none':'flex';
+  document.getElementById('ela-row-1').style.display=isELA?'flex':'none';
+  document.getElementById('ela-row-2').style.display=isELA?'flex':'none';
+  document.getElementById('inputs-note').style.display=isELA?'none':'block';
+  document.getElementById('grandfather-label').style.display=isELA?'none':'';
+  document.getElementById('grandfatherToggle').closest('label').style.display=isELA?'none':'';
+}
 function applyVisibility(){
   const h=!internalVisible;
-  ['sublabel-base','sublabel-growth','sublabel-scale','inputs-note','grandfather-bar'].forEach(id=>{
-    document.getElementById(id).classList.toggle('hidden',h);
+  ['sublabel-base','sublabel-growth','sublabel-scale'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.toggle('hidden',h);
   });
+  if(!isELA){
+    document.getElementById('inputs-note').style.display=h?'none':'block';
+    document.getElementById('grandfather-bar').classList.toggle('hidden',h);
+  }
+}
+function calcELADerived(){
+  const tam=getRawVal('elaTAM');
+  const discEl=document.getElementById('elaDiscount');
+  const disc=parseFloat(discEl.value)||0;
+  const discountedPPU=PPU*(1-disc/100);
+  const elaPrice=tam*discountedPPU;
+  const includedCredits=elaPrice*4;
+  const includedCreditsMonth=includedCredits/12;
+  document.getElementById('elaSuggestedPrice').textContent=tam>0?fmtCurrency(elaPrice):'—';
+  document.getElementById('elaIncludedCredits').textContent=tam>0?fmt(includedCredits)+' credits':'—';
+  if(document.getElementById('elaIncludedCreditsMonth'))
+    document.getElementById('elaIncludedCreditsMonth').textContent=tam>0?fmt(Math.round(includedCreditsMonth))+' credits':'—';
+  const warn=document.getElementById('elaDiscountWarning');
+  const hasDisc=discEl.value!=='';
+  warn.style.display=(hasDisc&&(disc<10||disc>35))?'block':'none';
+  return {elaPrice,includedCredits};
 }
 function calc(){
-  const users=parseFloat(document.getElementById('users').value)||0;
-  const bM=parseFloat(document.getElementById('baseMonth').value)||0;
-  const gM=parseFloat(document.getElementById('growthMonth').value)||0;
-  const sM=parseFloat(document.getElementById('scaleMonth').value)||0;
-  const rB=document.getElementById('rateBase').value;
-  const rG=document.getElementById('rateGrowth').value;
-  const rS=document.getElementById('rateScale').value;
-  const monthsVal=document.getElementById('monthsRemaining').value;
-  const isMidterm=monthsVal!==''&&parseFloat(monthsVal)>0;
-  const months=isMidterm?parseFloat(monthsVal):MONTHS;
-  const existingCredits=isMidterm?(parseFloat(document.getElementById('existingCredits').value)||0):0;
-  const creditsPerUser=isGrandfathered?CREDITS_GF:CREDITS_NEW;
+  const monthsRaw=document.getElementById('monthsRemaining').value.replace(/,/g,'');
+  const isMidterm=monthsRaw!==''&&parseFloat(monthsRaw)>0;
+  const months=isMidterm?parseFloat(monthsRaw):MONTHS;
+  const existingCredits=isMidterm?getRawVal('existingCredits'):0;
   const ecGroup=document.getElementById('existing-credits-group');
   ecGroup.style.opacity=isMidterm?'1':'0.4';
   ecGroup.style.pointerEvents=isMidterm?'auto':'none';
-  document.getElementById('midterm-note').classList.toggle('hidden',!isMidterm);
+  document.getElementById('midterm-note').classList.toggle('visible',isMidterm);
   const inclLabel=document.getElementById('incl-label');
   const footerNote=document.getElementById('footer-note');
   const gfLabel=document.getElementById('grandfather-label');
-  if(isGrandfathered){
-    inclLabel.classList.add('grandfathered');
+  const {includedCredits:elaIncluded}=calcELADerived();
+  if(isELA){
+    inclLabel.className='incl-label ela';
+    inclLabel.textContent='Annual credits included* (ELA)';
+    footerNote.innerHTML=internalVisible
+      ?'*ELA included credits = estimated users x discounted PPU x 4 credits per $1, pooled. Seats are unlimited, credits are not. &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits'
+      :'*Seats are unlimited, credits are not. &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+  }else if(isGrandfathered){
+    inclLabel.className='incl-label grandfathered';
     inclLabel.textContent='Annual credits included* (2,520/user)';
     gfLabel.classList.add('active');
     footerNote.innerHTML='*Included credits = 2,520 per user per year (grandfathered), pooled &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
   }else{
-    inclLabel.classList.remove('grandfathered');
+    inclLabel.className='incl-label';
     inclLabel.textContent='Annual credits included*';
     gfLabel.classList.remove('active');
-    footerNote.innerHTML='*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
+    footerNote.innerHTML='*Included credits = 2,100 per user per year, pooled &nbsp;&nbsp; **Recommended commit = expected annual credits minus included credits &nbsp;&nbsp; ***Overage rate = $1.10 per 100 credits';
   }
+  const users=getRawVal('users');
+  const creditsPerUser=isGrandfathered?CREDITS_GF:CREDITS_NEW;
+  const bM=isELA?getRawVal('elaBaseMonth'):getRawVal('baseMonth');
+  const gM=isELA?getRawVal('elaGrowthMonth'):getRawVal('growthMonth');
+  const sM=isELA?getRawVal('elaScaleMonth'):getRawVal('scaleMonth');
+  const rB=document.getElementById('rateBase').value;
+  const rG=document.getElementById('rateGrowth').value;
+  const rS=document.getElementById('rateScale').value;
   let anyBelowMin=false;
   [{sfx:'Base',cpm:bM,rv:rB},{sfx:'Growth',cpm:gM,rv:rG},{sfx:'Scale',cpm:sM,rv:rS}].forEach(({sfx,cpm,rv})=>{
     const col=sfx==='Base'?'vb':sfx==='Growth'?'vg':'vs';
     let included,annual,commit;
-    if(isMidterm){
-      included=null;
-      annual=null;
-      commit=cpm*months;
-    }else{
-      included=creditsPerUser*users;
-      annual=cpm*MONTHS;
-      commit=Math.max(0,annual-included);
-    }
+    if(isMidterm){included=null;annual=null;commit=cpm*months;}
+    else if(isELA){included=elaIncluded;annual=cpm*MONTHS;commit=Math.max(0,annual-included);}
+    else{included=creditsPerUser*users;annual=cpm*MONTHS;commit=Math.max(0,annual-included);}
     if(commit>0&&commit<100000)anyBelowMin=true;
     const cumulativeCredits=isMidterm?(existingCredits+commit):commit;
     const tier=getTier(cumulativeCredits);
@@ -284,12 +395,8 @@ function calc(){
     const inp=document.getElementById('rate'+sfx);
     badge.textContent=tier.label;
     badge.className='tier-badge'+(internalVisible?'':' hidden');
-    if(isMidterm&&existingCredits>0&&internalVisible){
-      cBadge.textContent='Cumulative: '+fmt(cumulativeCredits)+' credits';
-      cBadge.className='cumulative-badge';
-    }else{
-      cBadge.className='cumulative-badge hidden';
-    }
+    if(isMidterm&&existingCredits>0&&internalVisible){cBadge.textContent='Cumulative: '+fmt(cumulativeCredits)+' credits';cBadge.className='cumulative-badge';}
+    else{cBadge.className='cumulative-badge hidden';}
     msg.className='approval-msg'+(internalVisible?'':' hidden');
     inp.classList.remove('blocked','hard-blocked');
     if(approval==='hardstop'){msg.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';msg.classList.add('hardstop');inp.classList.add('hard-blocked');}
@@ -303,26 +410,26 @@ function calc(){
 }
 document.getElementById('internalToggle').addEventListener('change',function(){internalVisible=this.checked;calc();});
 document.getElementById('grandfatherToggle').addEventListener('change',function(){isGrandfathered=this.checked;calc();});
-['users','baseMonth','growthMonth','scaleMonth','rateBase','rateGrowth','rateScale','monthsRemaining','existingCredits'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',calc);
+document.getElementById('elaToggle').addEventListener('change',function(){
+  isELA=this.checked;
+  if(!isELA){isGrandfathered=false;document.getElementById('grandfatherToggle').checked=false;}
+  switchMode();
+  calc();
+});
+// Rate inputs stay as type=number (they're small precise decimals, no comma needed)
+['rateBase','rateGrowth','rateScale'].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.addEventListener('input',calc);
 });
 calc();
-
-// Screenshot function
 async function takeScreenshot(){
   const btn=document.getElementById('screenshotBtn');
   btn.classList.add('capturing');
   btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Capturing...`;
-  try {
+  try{
     const wrap=document.getElementById('calculator-wrap');
     btn.style.visibility='hidden';
     await new Promise(r=>setTimeout(r,50));
-    const rawCanvas=await html2canvas(wrap,{
-      backgroundColor:'#111111',
-      scale:2,
-      useCORS:true,
-      logging:false,
-    });
+    const rawCanvas=await html2canvas(wrap,{backgroundColor:'#111111',scale:2,useCORS:true,logging:false});
     btn.style.visibility='visible';
     const margin=40*2;
     const canvas=document.createElement('canvas');
@@ -338,11 +445,11 @@ async function takeScreenshot(){
     link.download='sourcegraph-commitment-options-'+ts+'.png';
     link.href=canvas.toDataURL('image/png');
     link.click();
-  } catch(e){
+  }catch(e){
     console.error('Screenshot failed:',e);
     btn.style.visibility='visible';
     alert('Screenshot failed. Please try again.');
-  } finally {
+  }finally{
     btn.classList.remove('capturing');
     btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Take a screenshot`;
   }
