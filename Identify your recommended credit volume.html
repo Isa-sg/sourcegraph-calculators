@@ -21,7 +21,6 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
 
-/* Screenshot button */
 .screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
 .screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
 .screenshot-btn:active{background:#222}
@@ -39,8 +38,9 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;color:#888;margin-bottom:5px}
 .field .hint{font-size:11px;color:#555;margin-top:3px}
-.field input[type=number]{width:100%;background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;outline:none}
-.field input[type=number]:focus{border-color:#666}
+.field input[type=text]{width:100%;background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif}
+.field input[type=text]:focus{border-color:#666}
+.field input[type=text]::placeholder{color:#444}
 .field .calc-val{font-size:15px;font-weight:500;color:#fff;padding:8px 0}
 .divider{border:none;border-top:0.5px solid #2a2a2a;margin:14px 0}
 .grandfather-bar{display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:14px}
@@ -87,8 +87,6 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
   <div class="toggle-bar">
     <span class="toggle-label">Show details</span>
     <label class="toggle"><input type="checkbox" id="detailsToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-
-    <!-- Screenshot button -->
     <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Save as image">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -101,15 +99,17 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
     <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
   </div>
+
+  <!-- RENEWAL TAB -->
   <div class="tab-content active" id="tab-renewal">
     <div class="two-col">
       <div class="card">
         <div class="card-title">Usage inputs</div>
-        <div class="field"><label>Developers / users</label><input type="number" id="r-users" placeholder="e.g. 500" min="1" oninput="calcRenewal()"></div>
+        <div class="field"><label>Developers / users</label><input type="text" id="r-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-users',calcRenewal)" onfocus="onNumFocus(this)"></div>
         <div class="field">
           <label>Avg. credits per user per month*</label>
           <div class="hint">Included credits are 175/user/month</div>
-          <input type="number" id="r-cpum" placeholder="e.g. 300" min="0" oninput="calcRenewal()">
+          <input type="text" id="r-cpum" placeholder="e.g. 300" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum',calcRenewal)" onfocus="onNumFocus(this)">
         </div>
         <div class="grandfather-bar">
           <span class="grandfather-label" id="r-grandfather-label">Grandfathered / renewing customer</span>
@@ -153,23 +153,25 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
       Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
     </div>
   </div>
+
+  <!-- EXPANSION TAB -->
   <div class="tab-content" id="tab-expansion">
     <div class="two-col">
       <div class="card">
         <div class="card-title">Usage inputs</div>
-        <div class="field"><label>Developers / users</label><input type="number" id="e-users" placeholder="e.g. 500" min="1" oninput="calcExpansion()"></div>
-        <div class="field"><label>Add-on avg. credits per user per month</label><input type="number" id="e-cpum" placeholder="e.g. 200" min="0" oninput="calcExpansion()"></div>
+        <div class="field"><label>Developers / users</label><input type="text" id="e-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-users',calcExpansion)" onfocus="onNumFocus(this)"></div>
+        <div class="field"><label>Add-on avg. credits per user per month</label><input type="text" id="e-cpum" placeholder="e.g. 200" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-cpum',calcExpansion)" onfocus="onNumFocus(this)"></div>
         <hr class="divider">
         <div class="field">
           <label>Add-on avg. credits per month</label>
           <div class="hint">Company-wide monthly total</div>
-          <input type="number" id="e-total-month-input" placeholder="e.g. 100,000" min="0" oninput="calcExpansionFromTotal()">
+          <input type="text" id="e-total-month-input" placeholder="e.g. 100,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-total-month-input',calcExpansionFromTotal)" onfocus="onNumFocus(this)">
         </div>
-        <div class="field"><label>Months remaining in contract</label><input type="number" id="e-months" placeholder="e.g. 6" min="1" max="12" oninput="calcExpansion()"></div>
+        <div class="field"><label>Months remaining in contract</label><input type="text" id="e-months" placeholder="e.g. 6" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-months',calcExpansion)" onfocus="onNumFocus(this)"></div>
         <div class="field">
           <label>Credits already purchased this term</label>
           <div class="hint">Used to determine cumulative tier discount</div>
-          <input type="number" id="e-existing" placeholder="e.g. 2,000,000" min="0" oninput="calcExpansion()">
+          <input type="text" id="e-existing" placeholder="e.g. 2,000,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-existing',calcExpansion)" onfocus="onNumFocus(this)">
         </div>
       </div>
       <div class="card">
@@ -204,6 +206,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     </div>
   </div>
 </div>
+
 <script>
 const MIN_RATE=0.60,CREDITS_NEW=2100,CREDITS_GF=2520;
 const TIERS=[
@@ -216,6 +219,48 @@ const TIERS=[
 function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
 function fmt(n){return n==null?'—':n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* ── Comma-formatting helpers ── */
+function stripCommas(v){return v.replace(/,/g,'');}
+function addCommas(v){
+  const n=parseFloat(stripCommas(v));
+  if(isNaN(n)||v==='')return v;
+  // preserve decimals the user typed
+  const parts=stripCommas(v).split('.');
+  const intPart=parseInt(parts[0],10).toLocaleString('en-US');
+  return parts.length>1?intPart+'.'+parts[1]:intPart;
+}
+function getRawVal(id){
+  return parseFloat(stripCommas(document.getElementById(id).value))||0;
+}
+// While typing: format with commas in real time, preserving cursor
+function onNumInput(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  const formatted=raw===''?'':parseInt(raw,10).toLocaleString('en-US');
+  // figure out how many commas were before the cursor in the old value
+  const cursorPos=el.selectionStart;
+  const oldBeforeCursor=el.value.slice(0,cursorPos);
+  const digitsBeforeCursor=oldBeforeCursor.replace(/[^0-9]/g,'').length;
+  el.value=formatted;
+  // restore cursor: count forward through new value until we've passed digitsBeforeCursor digits
+  let newPos=0,digits=0;
+  while(newPos<formatted.length&&digits<digitsBeforeCursor){
+    if(formatted[newPos]>='0'&&formatted[newPos]<='9')digits++;
+    newPos++;
+  }
+  el.setSelectionRange(newPos,newPos);
+  el._calcFn&&el._calcFn();
+}
+// On blur: nothing extra needed, already formatted
+function onNumBlur(el,id,calcFn){calcFn();}
+// On focus: nothing to strip, already clean
+function onNumFocus(el){}
+// Wire up calc function reference so onNumInput can call it
+function wireCalc(id,calcFn){
+  const el=document.getElementById(id);
+  el._calcFn=calcFn;
+}
+
 let showDetails=true;
 function updateSlider(p,credits,rawRate){
   const tier=getTier(credits||0);
@@ -253,9 +298,10 @@ function updateSlider(p,credits,rawRate){
   else{approvalEl.textContent='Within rep authority';approvalEl.classList.add('ok');}
   return rate;
 }
+
 function calcRenewal(){
-  const users=parseFloat(document.getElementById('r-users').value)||0;
-  const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
+  const users=getRawVal('r-users');
+  const cpum=getRawVal('r-cpum');
   const isGF=document.getElementById('r-grandfatherToggle').checked;
   const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
   const gfLabel=document.getElementById('r-grandfather-label');
@@ -279,9 +325,10 @@ function calcRenewal(){
   document.getElementById('r-overage').textContent=fmtD(overage);
   document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
+
 function onRenewalSlider(){
-  const users=parseFloat(document.getElementById('r-users').value)||0;
-  const cpum=parseFloat(document.getElementById('r-cpum').value)||0;
+  const users=getRawVal('r-users');
+  const cpum=getRawVal('r-cpum');
   const isGF=document.getElementById('r-grandfatherToggle').checked;
   const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
   const gap=Math.max(0,(users*cpum*12)-(users*creditsPerUser));
@@ -293,13 +340,18 @@ function onRenewalSlider(){
   document.getElementById('r-overage').textContent=fmtD(overage);
   document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
+
 function calcExpansion(){
-  const users=parseFloat(document.getElementById('e-users').value)||0;
-  const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
-  const months=parseFloat(document.getElementById('e-months').value)||0;
-  const existing=parseFloat(document.getElementById('e-existing').value)||0;
+  const users=getRawVal('e-users');
+  const cpum=getRawVal('e-cpum');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
   const totalMonth=users*cpum;
-  document.getElementById('e-total-month-input').value=totalMonth>0?totalMonth:'';
+  // Only sync the total-month field if it doesn't have focus
+  const tmEl=document.getElementById('e-total-month-input');
+  if(document.activeElement!==tmEl){
+    tmEl.value=totalMonth>0?totalMonth.toLocaleString('en-US'):'';
+  }
   const purchase=totalMonth*months;
   const cumulative=existing+purchase;
   document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
@@ -315,13 +367,17 @@ function calcExpansion(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
+
 function calcExpansionFromTotal(){
-  const users=parseFloat(document.getElementById('e-users').value)||0;
-  const totalMonth=parseFloat(document.getElementById('e-total-month-input').value)||0;
-  const months=parseFloat(document.getElementById('e-months').value)||0;
-  const existing=parseFloat(document.getElementById('e-existing').value)||0;
+  const users=getRawVal('e-users');
+  const totalMonth=getRawVal('e-total-month-input');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
   const perUser=users>0&&totalMonth>0?totalMonth/users:0;
-  if(perUser>0)document.getElementById('e-cpum').value=perUser.toFixed(2);
+  const cpumEl=document.getElementById('e-cpum');
+  if(perUser>0){
+    cpumEl.value=document.activeElement===cpumEl?perUser.toFixed(2):perUser.toLocaleString('en-US',{maximumFractionDigits:2});
+  }
   const purchase=totalMonth*months;
   const cumulative=existing+purchase;
   document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
@@ -337,11 +393,12 @@ function calcExpansionFromTotal(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
+
 function onExpansionSlider(){
-  const users=parseFloat(document.getElementById('e-users').value)||0;
-  const cpum=parseFloat(document.getElementById('e-cpum').value)||0;
-  const months=parseFloat(document.getElementById('e-months').value)||0;
-  const existing=parseFloat(document.getElementById('e-existing').value)||0;
+  const users=getRawVal('e-users');
+  const cpum=getRawVal('e-cpum');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
   const totalMonth=users*cpum;
   const purchase=totalMonth*months;
   const cumulative=existing+purchase;
@@ -353,20 +410,26 @@ function onExpansionSlider(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
+
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='renewal'?0:1)));
   document.getElementById('tab-renewal').classList.toggle('active',t==='renewal');
   document.getElementById('tab-expansion').classList.toggle('active',t==='expansion');
 }
+
 document.getElementById('detailsToggle').addEventListener('change',function(){
   showDetails=this.checked;calcRenewal();calcExpansion();
 });
-document.getElementById('e-total-month-input').addEventListener('input',calcExpansionFromTotal);
-document.getElementById('e-existing').addEventListener('input',calcExpansion);
-updateSlider('r',0,0.95);updateSlider('e',0,0.95);
+
+// Wire up live calc on input for all fields
+['r-users','r-cpum'].forEach(id=>wireCalc(id,calcRenewal));
+['e-users','e-cpum','e-months','e-existing'].forEach(id=>wireCalc(id,calcExpansion));
+wireCalc('e-total-month-input',calcExpansionFromTotal);
+
+updateSlider('r',0,0.95);
+updateSlider('e',0,0.95);
 calcRenewal();
 
-// Screenshot function
 async function takeScreenshot(){
   const btn=document.getElementById('screenshotBtn');
   btn.classList.add('capturing');
@@ -374,14 +437,9 @@ async function takeScreenshot(){
   try {
     const wrap=document.getElementById('calculator-wrap');
     btn.style.visibility='hidden';
-    await new Promise(r=>setTimeout(r,50)); // let browser repaint before capture
-    const rawCanvas=await html2canvas(wrap,{
-      backgroundColor:'#111111',
-      scale:2,
-      useCORS:true,
-      logging:false,
-    });
-    const margin=40*2; // 40px margin at 2x scale
+    await new Promise(r=>setTimeout(r,50));
+    const rawCanvas=await html2canvas(wrap,{backgroundColor:'#111111',scale:2,useCORS:true,logging:false});
+    const margin=40*2;
     const canvas=document.createElement('canvas');
     canvas.width=rawCanvas.width+margin*2;
     canvas.height=rawCanvas.height+margin*2;
