@@ -20,13 +20,11 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .toggle input:checked+.toggle-track{background:#5cb85c}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .toggle input:checked~.toggle-thumb{transform:translateX(16px)}
-
 .screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
 .screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
 .screenshot-btn:active{background:#222}
 .screenshot-btn svg{flex-shrink:0}
 .screenshot-btn.capturing{border-color:#5cb85c;color:#5cb85c}
-
 .tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:0.5px solid #333}
 .tab{padding:10px 20px;font-size:13px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
 .tab.active{color:#fff;border-bottom-color:#fff}
@@ -41,6 +39,12 @@ h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
 .field input[type=text]{width:100%;background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif}
 .field input[type=text]:focus{border-color:#666}
 .field input[type=text]::placeholder{color:#444}
+.tooltip-wrap{position:relative;display:inline-block;margin-left:5px;vertical-align:middle;}
+.tooltip-btn{background:none;border:1px solid #5b9bd5;border-radius:50%;color:#5b9bd5;font-size:9px;width:14px;height:14px;cursor:pointer;padding:0;line-height:14px;text-align:center;font-family:'Inter',sans-serif;font-weight:600;}
+.tooltip-btn:hover{background:#5b9bd5;color:#111;}
+.tooltip-bubble{display:none;position:absolute;left:20px;top:-4px;background:#1a2a3a;border:0.5px solid #5b9bd5;border-radius:6px;padding:7px 10px;font-size:11px;color:#5b9bd5;white-space:nowrap;z-index:100;pointer-events:none;}
+.tooltip-bubble.active{display:block;}
+.tooltip-wrap:hover .tooltip-bubble{display:block;}
 .field .calc-val{font-size:15px;font-weight:500;color:#fff;padding:8px 0}
 .divider{border:none;border-top:0.5px solid #2a2a2a;margin:14px 0}
 .grandfather-bar{display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:14px}
@@ -105,19 +109,53 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:
     <div class="two-col">
       <div class="card">
         <div class="card-title">Usage inputs</div>
-        <div class="field"><label>Developers / users</label><input type="text" id="r-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-users',calcRenewal)" onfocus="onNumFocus(this)"></div>
-        <div class="field">
-          <label>Avg. credits per user per month*</label>
-          <div class="hint">Included credits are 175/user/month</div>
-          <input type="text" id="r-cpum" placeholder="e.g. 300" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum',calcRenewal)" onfocus="onNumFocus(this)">
-        </div>
         <div class="grandfather-bar">
           <span class="grandfather-label" id="r-grandfather-label">Grandfathered / renewing customer</span>
-          <label class="toggle"><input type="checkbox" id="r-grandfatherToggle" onchange="calcRenewal()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <label class="toggle"><input type="checkbox" id="r-grandfatherToggle" onchange="calcRenewalFromMonth()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
         </div>
         <hr class="divider">
-        <div class="field"><label>Total avg. credits per month*</label><div class="hint">Avg. credits per user per month x users</div><div class="calc-val" id="r-total-month">—</div></div>
-        <div class="field"><label>Total annual credits*</label><div class="hint">Total avg. credits per month x 12</div><div class="calc-val" id="r-total-year">—</div></div>
+        <div class="field"><label>Developers / users</label><input type="text" id="r-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-users',calcRenewal)" onfocus="onNumFocus(this)"></div>
+        <div class="field">
+          <label>Avg. credits per user per month*
+            <span class="tooltip-wrap">
+              <button class="tooltip-btn" type="button">?</button>
+              <span class="tooltip-bubble">Use when you have a per user credits estimate</span>
+            </span>
+          </label>
+          <div class="hint">This includes free credits (175/user/month)</div>
+          <input type="text" id="r-cpum" placeholder="e.g. 300" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum',calcRenewal)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Avg. credits per user per month (excl. free)</label>
+          <div class="hint">Without the included free credits per user</div>
+          <input type="text" id="r-cpum-excl" placeholder="e.g. 125" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum-excl',calcRenewalFromCpumExcl)" onfocus="onNumFocus(this)">
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Total avg. credits per month*
+            <span class="tooltip-wrap">
+              <button class="tooltip-btn" type="button">?</button>
+              <span class="tooltip-bubble">Use when you have org-wide pooled credits data</span>
+            </span>
+          </label>
+          <div class="hint">All credits consumed org-wide per month, including free credits</div>
+          <input type="text" id="r-total-month" placeholder="e.g. 150,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-month',calcRenewalFromMonth)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total avg. credits per month (excl. free)</label>
+          <div class="hint">Org-wide monthly total without included free credits</div>
+          <input type="text" id="r-total-month-excl" placeholder="e.g. 62,500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-month-excl',calcRenewalFromMonthExcl)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total annual credits*</label>
+          <div class="hint">Full-year total across all users, including free credits</div>
+          <input type="text" id="r-total-year" placeholder="e.g. 1,800,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-year',calcRenewalFromYear)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total annual credits (excl. free)</label>
+          <div class="hint">Full-year total without included free credits</div>
+          <input type="text" id="r-total-year-excl" placeholder="e.g. 750,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-year-excl',calcRenewalFromYearExcl)" onfocus="onNumFocus(this)">
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Our recommendation</div>
@@ -219,13 +257,10 @@ const TIERS=[
 function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
 function fmt(n){return n==null?'—':n.toLocaleString('en-US',{maximumFractionDigits:0});}
 function fmtD(n){return n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-
-/* ── Comma-formatting helpers ── */
 function stripCommas(v){return v.replace(/,/g,'');}
 function addCommas(v){
   const n=parseFloat(stripCommas(v));
   if(isNaN(n)||v==='')return v;
-  // preserve decimals the user typed
   const parts=stripCommas(v).split('.');
   const intPart=parseInt(parts[0],10).toLocaleString('en-US');
   return parts.length>1?intPart+'.'+parts[1]:intPart;
@@ -233,16 +268,13 @@ function addCommas(v){
 function getRawVal(id){
   return parseFloat(stripCommas(document.getElementById(id).value))||0;
 }
-// While typing: format with commas in real time, preserving cursor
 function onNumInput(el){
   const raw=el.value.replace(/[^0-9]/g,'');
   const formatted=raw===''?'':parseInt(raw,10).toLocaleString('en-US');
-  // figure out how many commas were before the cursor in the old value
   const cursorPos=el.selectionStart;
   const oldBeforeCursor=el.value.slice(0,cursorPos);
   const digitsBeforeCursor=oldBeforeCursor.replace(/[^0-9]/g,'').length;
   el.value=formatted;
-  // restore cursor: count forward through new value until we've passed digitsBeforeCursor digits
   let newPos=0,digits=0;
   while(newPos<formatted.length&&digits<digitsBeforeCursor){
     if(formatted[newPos]>='0'&&formatted[newPos]<='9')digits++;
@@ -251,16 +283,12 @@ function onNumInput(el){
   el.setSelectionRange(newPos,newPos);
   el._calcFn&&el._calcFn();
 }
-// On blur: nothing extra needed, already formatted
 function onNumBlur(el,id,calcFn){calcFn();}
-// On focus: nothing to strip, already clean
 function onNumFocus(el){}
-// Wire up calc function reference so onNumInput can call it
 function wireCalc(id,calcFn){
   const el=document.getElementById(id);
   el._calcFn=calcFn;
 }
-
 let showDetails=true;
 function updateSlider(p,credits,rawRate){
   const tier=getTier(credits||0);
@@ -298,21 +326,25 @@ function updateSlider(p,credits,rawRate){
   else{approvalEl.textContent='Within rep authority';approvalEl.classList.add('ok');}
   return rate;
 }
-
-function calcRenewal(){
-  const users=getRawVal('r-users');
-  const cpum=getRawVal('r-cpum');
+function getFreePM(){
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  return isGF?210:175;
+}
+function setFieldIfNotActive(id,val){
+  const el=document.getElementById(id);
+  if(document.activeElement!==el) el.value=val>0?val.toLocaleString('en-US',{maximumFractionDigits:2}):'';
+}
+function applyRenewalResults(totalMonth,totalYear,users){
   const isGF=document.getElementById('r-grandfatherToggle').checked;
   const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
+  const freePM=getFreePM();
   const gfLabel=document.getElementById('r-grandfather-label');
   const inclLabel=document.getElementById('r-included-label');
   const footnote=document.getElementById('r-footnote');
   gfLabel.classList.toggle('active',isGF);
   if(isGF){inclLabel.textContent='Annual credits included** (2,520/user)';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,520 per user per year (grandfathered), pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
   else{inclLabel.textContent='Annual credits included**';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,100 per user per year, pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
-  const totalMonth=users*cpum,totalYear=totalMonth*12,included=users*creditsPerUser,needed=totalYear,gap=Math.max(0,needed-included);
-  document.getElementById('r-total-month').textContent=fmt(totalMonth||null);
-  document.getElementById('r-total-year').textContent=fmt(totalYear||null);
+  const included=users*creditsPerUser,needed=totalYear,gap=Math.max(0,needed-included);
   document.getElementById('r-included').textContent=fmt(included||null);
   document.getElementById('r-needed').textContent=fmt(needed||null);
   document.getElementById('r-gap').textContent=fmt(gap||null);
@@ -325,13 +357,76 @@ function calcRenewal(){
   document.getElementById('r-overage').textContent=fmtD(overage);
   document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
-
-function onRenewalSlider(){
+function syncRenewalFields(totalMonth,totalYear,users,source){
+  const freePM=getFreePM();
+  const cpum=users>0&&totalMonth>0?totalMonth/users:0;
+  const cpumExcl=Math.max(0,cpum-freePM);
+  const totalMonthExcl=Math.max(0,totalMonth-(users*freePM));
+  const totalYearExcl=Math.max(0,totalYear-(users*freePM*12));
+  if(source!=='cpum')       setFieldIfNotActive('r-cpum',cpum);
+  if(source!=='cpum-excl')  setFieldIfNotActive('r-cpum-excl',cpumExcl);
+  if(source!=='month')      setFieldIfNotActive('r-total-month',totalMonth);
+  if(source!=='month-excl') setFieldIfNotActive('r-total-month-excl',totalMonthExcl);
+  if(source!=='year')       setFieldIfNotActive('r-total-year',totalYear);
+  if(source!=='year-excl')  setFieldIfNotActive('r-total-year-excl',totalYearExcl);
+}
+function calcRenewal(){
   const users=getRawVal('r-users');
   const cpum=getRawVal('r-cpum');
+  const totalMonth=users*cpum;
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'cpum');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function calcRenewalFromCpumExcl(){
+  const users=getRawVal('r-users');
+  const cpumExcl=getRawVal('r-cpum-excl');
+  const freePM=getFreePM();
+  const cpum=cpumExcl+freePM;
+  const totalMonth=users*cpum;
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'cpum-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function calcRenewalFromMonth(){
+  const users=getRawVal('r-users');
+  const totalMonth=getRawVal('r-total-month');
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'month');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function calcRenewalFromMonthExcl(){
+  const users=getRawVal('r-users');
+  const freePM=getFreePM();
+  const totalMonthExcl=getRawVal('r-total-month-excl');
+  const totalMonth=totalMonthExcl+(users*freePM);
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'month-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function calcRenewalFromYear(){
+  const users=getRawVal('r-users');
+  const totalYear=getRawVal('r-total-year');
+  const totalMonth=totalYear/12;
+  syncRenewalFields(totalMonth,totalYear,users,'year');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function calcRenewalFromYearExcl(){
+  const users=getRawVal('r-users');
+  const freePM=getFreePM();
+  const totalYearExcl=getRawVal('r-total-year-excl');
+  const totalYear=totalYearExcl+(users*freePM*12);
+  const totalMonth=totalYear/12;
+  syncRenewalFields(totalMonth,totalYear,users,'year-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+function onRenewalSlider(){
+  const users=getRawVal('r-users');
+  const totalYear=getRawVal('r-total-year')||getRawVal('r-cpum')*users*12;
   const isGF=document.getElementById('r-grandfatherToggle').checked;
   const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
-  const gap=Math.max(0,(users*cpum*12)-(users*creditsPerUser));
+  const included=users*creditsPerUser;
+  const gap=Math.max(0,totalYear-included);
   const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
   const cost=gap>0?(gap/100)*rate:null;
   const overage=gap>0?(gap/100)*1.10:null;
@@ -340,14 +435,12 @@ function onRenewalSlider(){
   document.getElementById('r-overage').textContent=fmtD(overage);
   document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
-
 function calcExpansion(){
   const users=getRawVal('e-users');
   const cpum=getRawVal('e-cpum');
   const months=getRawVal('e-months');
   const existing=getRawVal('e-existing');
   const totalMonth=users*cpum;
-  // Only sync the total-month field if it doesn't have focus
   const tmEl=document.getElementById('e-total-month-input');
   if(document.activeElement!==tmEl){
     tmEl.value=totalMonth>0?totalMonth.toLocaleString('en-US'):'';
@@ -367,7 +460,6 @@ function calcExpansion(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
-
 function calcExpansionFromTotal(){
   const users=getRawVal('e-users');
   const totalMonth=getRawVal('e-total-month-input');
@@ -393,7 +485,6 @@ function calcExpansionFromTotal(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
-
 function onExpansionSlider(){
   const users=getRawVal('e-users');
   const cpum=getRawVal('e-cpum');
@@ -410,26 +501,25 @@ function onExpansionSlider(){
   document.getElementById('e-overage').textContent=fmtD(overage);
   document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
 }
-
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='renewal'?0:1)));
   document.getElementById('tab-renewal').classList.toggle('active',t==='renewal');
   document.getElementById('tab-expansion').classList.toggle('active',t==='expansion');
 }
-
 document.getElementById('detailsToggle').addEventListener('change',function(){
   showDetails=this.checked;calcRenewal();calcExpansion();
 });
-
-// Wire up live calc on input for all fields
 ['r-users','r-cpum'].forEach(id=>wireCalc(id,calcRenewal));
+wireCalc('r-cpum-excl',calcRenewalFromCpumExcl);
+wireCalc('r-total-month',calcRenewalFromMonth);
+wireCalc('r-total-month-excl',calcRenewalFromMonthExcl);
+wireCalc('r-total-year',calcRenewalFromYear);
+wireCalc('r-total-year-excl',calcRenewalFromYearExcl);
 ['e-users','e-cpum','e-months','e-existing'].forEach(id=>wireCalc(id,calcExpansion));
 wireCalc('e-total-month-input',calcExpansionFromTotal);
-
 updateSlider('r',0,0.95);
 updateSlider('e',0,0.95);
 calcRenewal();
-
 async function takeScreenshot(){
   const btn=document.getElementById('screenshotBtn');
   btn.classList.add('capturing');
