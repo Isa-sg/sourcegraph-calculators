@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identify your recommended credit volume</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#e0e0e0;font-family:'Inter',sans-serif;padding:24px}
+.wrap{background:#111;max-width:960px;margin:0 auto}
+.logo{font-size:13px;font-weight:600;color:#fff;letter-spacing:.08em;margin-bottom:20px;opacity:.7}
+h1{font-size:20px;font-weight:500;color:#fff;margin-bottom:6px}
+.subtitle{font-size:13px;color:#888;margin-bottom:16px}
+.toggle-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.toggle-label{font-size:12px;color:#888}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:#333;border-radius:20px;transition:background .2s}
+.toggle input:checked+.toggle-track{background:#5cb85c}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+
+.screenshot-btn{display:flex;align-items:center;gap:6px;background:transparent;border:0.5px solid #444;border-radius:6px;color:#888;font-size:12px;font-family:'Inter',sans-serif;padding:5px 10px;cursor:pointer;transition:all .15s;margin-left:6px}
+.screenshot-btn:hover{border-color:#888;color:#ccc;background:#1a1a1a}
+.screenshot-btn:active{background:#222}
+.screenshot-btn svg{flex-shrink:0}
+.screenshot-btn.capturing{border-color:#5cb85c;color:#5cb85c}
+
+.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:0.5px solid #333}
+.tab{padding:10px 20px;font-size:13px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.tab.active{color:#fff;border-bottom-color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#1a1a1a;border:0.5px solid #333;border-radius:10px;padding:20px}
+.card-title{font-size:11px;font-weight:500;letter-spacing:.06em;color:#666;text-transform:uppercase;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:#888;margin-bottom:5px}
+.field .hint{font-size:11px;color:#555;margin-top:3px}
+.field input[type=text]{width:100%;background:#111;border:0.5px solid #444;border-radius:6px;color:#fff;font-size:14px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif}
+.field input[type=text]:focus{border-color:#666}
+.field input[type=text]::placeholder{color:#444}
+.field .calc-val{font-size:15px;font-weight:500;color:#fff;padding:8px 0}
+.divider{border:none;border-top:0.5px solid #2a2a2a;margin:14px 0}
+.grandfather-bar{display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:14px}
+.grandfather-label{font-size:11px;color:#888}
+.grandfather-label.active{color:#e8a838}
+.result-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:0.5px solid #222}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:12px;color:#888}
+.result-val{font-size:13px;font-weight:500;color:#fff;text-align:right}
+.result-val.green{color:#5cb85c}
+.tier-row{min-height:28px;margin-bottom:4px}
+.tier-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#1e2a1e;color:#5cb85c;border:0.5px solid #2d4a2d;}
+.cumulative-note{font-size:10px;color:#5cb85c;font-style:italic;margin-bottom:8px;min-height:14px}
+.slider-section{margin-top:4px}
+.slider-val{font-size:22px;font-weight:500;text-align:center;margin:6px 0 10px;transition:color .15s}
+.slider-val.green{color:#5cb85c}
+.slider-val.amber{color:#e8a838}
+.slider-val.red{color:#e85555}
+.track-outer{position:relative;height:8px;border-radius:4px;margin-bottom:6px;overflow:hidden;background:#333}
+.track-fill{position:absolute;top:0;left:0;height:100%;transition:width .05s,background .15s;border-radius:4px}
+.track-labels{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;transition:opacity .2s}
+.track-labels.hidden{opacity:0;pointer-events:none}
+.track-labels .lbl-green{color:#5cb85c}
+.track-labels .lbl-amber{color:#e8a838}
+.track-labels .lbl-red{color:#e85555}
+.range-wrap{position:relative;margin-bottom:0}
+input[type=range]{width:100%;cursor:pointer;accent-color:#fff;height:4px;margin:0}
+.end-labels{display:flex;justify-content:space-between;font-size:10px;color:#555;margin-top:2px}
+.approval-note{font-size:11px;font-style:italic;text-align:center;min-height:16px;margin-top:6px;transition:opacity .2s;line-height:1.4}
+.approval-note.hidden{opacity:0;pointer-events:none}
+.approval-note.ok{color:#5cb85c}
+.approval-note.ghos{color:#e8a838}
+.approval-note.vpcro{color:#e85555}
+.approval-note.nodisc{color:#e85555}
+.approval-note.hardstop{color:#e85555;font-weight:500}
+.footnote{font-size:11px;color:#555;margin-top:20px;line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap" id="calculator-wrap">
+  <div class="logo">SOURCEGRAPH</div>
+  <h1>Identify your recommended credit volume</h1>
+  <p class="subtitle">Enter team size and estimated monthly usage to get a recommendation</p>
+  <div class="toggle-bar">
+    <span class="toggle-label">Show details</span>
+    <label class="toggle"><input type="checkbox" id="detailsToggle" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+    <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Save as image">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Take a screenshot
+    </button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('renewal')">New / Renewal</div>
+    <div class="tab" onclick="switchTab('expansion')">Mid-term expansion</div>
+  </div>
+
+  <!-- RENEWAL TAB -->
+  <div class="tab-content active" id="tab-renewal">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Usage inputs</div>
+        <div class="field"><label>Developers / users</label><input type="text" id="r-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-users',calcRenewal)" onfocus="onNumFocus(this)"></div>
+        <div class="field">
+          <label>Avg. credits per user per month*</label>
+          <div class="hint">This includes free credits (175/user/month)</div>
+          <input type="text" id="r-cpum" placeholder="e.g. 300" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum',calcRenewal)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Avg. credits per user per month (excl. free)</label>
+          <div class="hint">Without the included free credits per user</div>
+          <input type="text" id="r-cpum-excl" placeholder="e.g. 125" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-cpum-excl',calcRenewalFromCpumExcl)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="grandfather-bar">
+          <span class="grandfather-label" id="r-grandfather-label">Grandfathered / renewing customer</span>
+          <label class="toggle"><input type="checkbox" id="r-grandfatherToggle" onchange="calcRenewalFromMonth()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Total avg. credits per month*</label>
+          <div class="hint">All credits consumed org-wide per month, including free credits</div>
+          <input type="text" id="r-total-month" placeholder="e.g. 150,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-month',calcRenewalFromMonth)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total avg. credits per month (excl. free)</label>
+          <div class="hint">Org-wide monthly total without included free credits</div>
+          <input type="text" id="r-total-month-excl" placeholder="e.g. 62,500" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-month-excl',calcRenewalFromMonthExcl)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total annual credits*</label>
+          <div class="hint">Full-year total across all users, including free credits</div>
+          <input type="text" id="r-total-year" placeholder="e.g. 1,800,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-year',calcRenewalFromYear)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field">
+          <label>Total annual credits (excl. free)</label>
+          <div class="hint">Full-year total without included free credits</div>
+          <input type="text" id="r-total-year-excl" placeholder="e.g. 750,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'r-total-year-excl',calcRenewalFromYearExcl)" onfocus="onNumFocus(this)">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Our recommendation</div>
+        <div class="result-row"><span class="result-label" id="r-included-label">Annual credits included**</span><span class="result-val" id="r-included">—</span></div>
+        <div class="result-row"><span class="result-label">Total annual credits*</span><span class="result-val" id="r-needed">—</span></div>
+        <div class="result-row"><span class="result-label">Recommended commit</span><span class="result-val" id="r-gap">—</span></div>
+        <div id="r-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
+        <hr class="divider">
+        <div class="tier-row"><span id="r-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
+        <div class="field">
+          <label>Rate / 100 credits</label>
+          <div class="slider-section">
+            <div class="slider-val green" id="r-rate-val">$0.95</div>
+            <div class="track-outer"><div class="track-fill" id="r-track-fill" style="width:100%;background:#5cb85c"></div></div>
+            <div class="track-labels" id="r-track-labels"><span class="lbl-green">Rep authority</span><span class="lbl-amber">GHOS</span><span class="lbl-red">VP Finance / CRO</span></div>
+            <div class="range-wrap"><input type="range" id="r-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onRenewalSlider()"></div>
+            <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
+            <div class="approval-note ok" id="r-approval">Within rep authority</div>
+          </div>
+        </div>
+        <div class="result-row"><span class="result-label">Discount vs. overage rate</span><span class="result-val" id="r-discount">0%</span></div>
+        <hr class="divider">
+        <div class="result-row"><span class="result-label">Overage cost***</span><span class="result-val" id="r-overage">—</span></div>
+        <div class="result-row"><span class="result-label">Recommended commit cost</span><span class="result-val green" id="r-cost">—</span></div>
+        <div class="result-row"><span class="result-label">Cost saving</span><span class="result-val green" id="r-saving">—</span></div>
+      </div>
+    </div>
+    <div class="footnote" id="r-footnote">
+      *Includes free allocations<br>
+      **Annual credits included = 2,100 per user per year, pooled<br>
+      ***Overage rate = $1.10 per 100 credits<br>
+      Minimum recommended commit purchase: 100,000 credits<br>
+      Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.
+    </div>
+  </div>
+
+  <!-- EXPANSION TAB -->
+  <div class="tab-content" id="tab-expansion">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Usage inputs</div>
+        <div class="field"><label>Developers / users</label><input type="text" id="e-users" placeholder="e.g. 500" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-users',calcExpansion)" onfocus="onNumFocus(this)"></div>
+        <div class="field"><label>Add-on avg. credits per user per month</label><input type="text" id="e-cpum" placeholder="e.g. 200" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-cpum',calcExpansion)" onfocus="onNumFocus(this)"></div>
+        <hr class="divider">
+        <div class="field">
+          <label>Add-on avg. credits per month</label>
+          <div class="hint">Company-wide monthly total</div>
+          <input type="text" id="e-total-month-input" placeholder="e.g. 100,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-total-month-input',calcExpansionFromTotal)" onfocus="onNumFocus(this)">
+        </div>
+        <div class="field"><label>Months remaining in contract</label><input type="text" id="e-months" placeholder="e.g. 6" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-months',calcExpansion)" onfocus="onNumFocus(this)"></div>
+        <div class="field">
+          <label>Credits already purchased this term</label>
+          <div class="hint">Used to determine cumulative tier discount</div>
+          <input type="text" id="e-existing" placeholder="e.g. 2,000,000" oninput="onNumInput(this)" onblur="onNumBlur(this,'e-existing',calcExpansion)" onfocus="onNumFocus(this)">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Our recommendation</div>
+        <div class="result-row"><span class="result-label">Recommended commit*</span><span class="result-val" id="e-purchase">—</span></div>
+        <div id="e-min-warning" style="display:none;font-size:11px;color:#e8a838;font-style:italic;padding:4px 0 2px;">Minimum purchase is 100,000 credits</div>
+        <hr class="divider">
+        <div class="tier-row"><span id="e-tier-pill" class="tier-pill" style="visibility:hidden">placeholder</span></div>
+        <div class="cumulative-note" id="e-cumulative-note"></div>
+        <div class="field">
+          <label>Rate / 100 credits</label>
+          <div class="slider-section">
+            <div class="slider-val green" id="e-rate-val">$0.95</div>
+            <div class="track-outer"><div class="track-fill" id="e-track-fill" style="width:100%;background:#5cb85c"></div></div>
+            <div class="track-labels" id="e-track-labels"><span class="lbl-green">Rep authority</span><span class="lbl-amber">GHOS</span><span class="lbl-red">VP Finance / CRO</span></div>
+            <div class="range-wrap"><input type="range" id="e-rate-slider" min="0" max="0.95" step="0.01" value="0.95" oninput="onExpansionSlider()"></div>
+            <div class="end-labels"><span>$0.00</span><span>$0.95</span></div>
+            <div class="approval-note ok" id="e-approval">Within rep authority</div>
+          </div>
+        </div>
+        <div class="result-row"><span class="result-label">Discount vs. overage rate</span><span class="result-val" id="e-discount">0%</span></div>
+        <hr class="divider">
+        <div class="result-row"><span class="result-label">Overage cost**</span><span class="result-val" id="e-overage">—</span></div>
+        <div class="result-row"><span class="result-label">ARR impact at renewal</span><span class="result-val green" id="e-arr">—</span></div>
+        <div class="result-row"><span class="result-label">Cost saving</span><span class="result-val green" id="e-saving">—</span></div>
+      </div>
+    </div>
+    <div class="footnote">
+      *Minimum 100,000 credits<br>
+      **Overage rate = $1.10 per 100 credits<br>
+      Tier is based on cumulative credits (existing purchased + new commit). Credit purchase is invoiced in full at time of purchase.
+    </div>
+  </div>
+</div>
+
+<script>
+const MIN_RATE=0.60,CREDITS_NEW=2100,CREDITS_GF=2520;
+const TIERS=[
+  {label:'Tier 1 (up to 2.5M)',min:0,max:2500000,repFloor:null,mgrFloor:null,discountable:false},
+  {label:'Tier 2 (2.5M-5M)',min:2500001,max:4999999,repFloor:0.89,mgrFloor:0.85,discountable:true},
+  {label:'Tier 3 (5M-10M)',min:5000000,max:9999999,repFloor:0.85,mgrFloor:0.81,discountable:true},
+  {label:'Tier 4 (10M-20M)',min:10000000,max:19999999,repFloor:0.78,mgrFloor:0.70,discountable:true},
+  {label:'Tier 5 (20M+)',min:20000000,max:Infinity,repFloor:0.70,mgrFloor:0.60,discountable:true},
+];
+function getTier(c){return TIERS.find(t=>c>=t.min&&c<=t.max)||TIERS[0];}
+function fmt(n){return n==null?'—':n.toLocaleString('en-US',{maximumFractionDigits:0});}
+function fmtD(n){return n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function stripCommas(v){return v.replace(/,/g,'');}
+function addCommas(v){
+  const n=parseFloat(stripCommas(v));
+  if(isNaN(n)||v==='')return v;
+  const parts=stripCommas(v).split('.');
+  const intPart=parseInt(parts[0],10).toLocaleString('en-US');
+  return parts.length>1?intPart+'.'+parts[1]:intPart;
+}
+function getRawVal(id){
+  return parseFloat(stripCommas(document.getElementById(id).value))||0;
+}
+function onNumInput(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  const formatted=raw===''?'':parseInt(raw,10).toLocaleString('en-US');
+  const cursorPos=el.selectionStart;
+  const oldBeforeCursor=el.value.slice(0,cursorPos);
+  const digitsBeforeCursor=oldBeforeCursor.replace(/[^0-9]/g,'').length;
+  el.value=formatted;
+  let newPos=0,digits=0;
+  while(newPos<formatted.length&&digits<digitsBeforeCursor){
+    if(formatted[newPos]>='0'&&formatted[newPos]<='9')digits++;
+    newPos++;
+  }
+  el.setSelectionRange(newPos,newPos);
+  el._calcFn&&el._calcFn();
+}
+function onNumBlur(el,id,calcFn){calcFn();}
+function onNumFocus(el){}
+function wireCalc(id,calcFn){
+  const el=document.getElementById(id);
+  el._calcFn=calcFn;
+}
+
+let showDetails=true;
+function updateSlider(p,credits,rawRate){
+  const tier=getTier(credits||0);
+  const pill=document.getElementById(p+'-tier-pill');
+  const slider=document.getElementById(p+'-rate-slider');
+  const rateValEl=document.getElementById(p+'-rate-val');
+  const approvalEl=document.getElementById(p+'-approval');
+  const discountEl=document.getElementById(p+'-discount');
+  const trackFill=document.getElementById(p+'-track-fill');
+  const labels=document.getElementById(p+'-track-labels');
+  pill.textContent=tier.label;
+  pill.style.visibility=(credits>0&&showDetails)?'visible':'hidden';
+  let rate=parseFloat(rawRate);
+  if(isNaN(rate))rate=0.95;
+  rate=Math.min(0.95,Math.max(0,rate));
+  slider.value=rate;
+  const fillPct=(rate/0.95)*100;
+  trackFill.style.width=fillPct+'%';
+  let fillColor='#5cb85c';
+  if(!tier.discountable){fillColor=rate<0.95?'#e85555':'#5cb85c';}
+  else{if(rate>=tier.repFloor)fillColor='#5cb85c';else if(rate>=tier.mgrFloor)fillColor='#e8a838';else fillColor='#e85555';}
+  trackFill.style.background=fillColor;
+  rateValEl.textContent='$'+rate.toFixed(2);
+  rateValEl.className='slider-val';
+  if(fillColor==='#5cb85c')rateValEl.classList.add('green');
+  else if(fillColor==='#e8a838')rateValEl.classList.add('amber');
+  else rateValEl.classList.add('red');
+  discountEl.textContent=Math.round(((1.10-rate)/1.10)*100)+'%';
+  labels.className='track-labels'+(showDetails?'':' hidden');
+  approvalEl.className='approval-note'+(showDetails?'':' hidden');
+  if(rate<MIN_RATE){approvalEl.textContent='This rate is below the minimum threshold — talk to Global Head of Sales before proceeding';approvalEl.classList.add('hardstop');}
+  else if(!tier.discountable&&rate<0.95){approvalEl.textContent='*this tier is not discountable — list price is $0.95';approvalEl.classList.add('nodisc');}
+  else if(tier.discountable&&rate<tier.mgrFloor){approvalEl.textContent='*requires VP Finance / CRO approval';approvalEl.classList.add('vpcro');}
+  else if(tier.discountable&&rate<tier.repFloor){approvalEl.textContent='*requires Global Head of Sales approval';approvalEl.classList.add('ghos');}
+  else{approvalEl.textContent='Within rep authority';approvalEl.classList.add('ok');}
+  return rate;
+}
+
+function getFreePM(){
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  return isGF?210:175; // free credits per user per month
+}
+
+function setFieldIfNotActive(id,val){
+  const el=document.getElementById(id);
+  if(document.activeElement!==el) el.value=val>0?val.toLocaleString('en-US',{maximumFractionDigits:2}):'';
+}
+
+function applyRenewalResults(totalMonth,totalYear,users){
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
+  const freePM=getFreePM();
+  const gfLabel=document.getElementById('r-grandfather-label');
+  const inclLabel=document.getElementById('r-included-label');
+  const footnote=document.getElementById('r-footnote');
+  gfLabel.classList.toggle('active',isGF);
+  if(isGF){inclLabel.textContent='Annual credits included** (2,520/user)';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,520 per user per year (grandfathered), pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
+  else{inclLabel.textContent='Annual credits included**';footnote.innerHTML='*Includes free allocations<br>**Annual credits included = 2,100 per user per year, pooled<br>***Overage rate = $1.10 per 100 credits<br>Minimum recommended commit purchase: 100,000 credits<br>Unused credits roll over at renewal if 100% ARR is maintained. Credits are pooled org-wide.';}
+  const included=users*creditsPerUser,needed=totalYear,gap=Math.max(0,needed-included);
+  document.getElementById('r-included').textContent=fmt(included||null);
+  document.getElementById('r-needed').textContent=fmt(needed||null);
+  document.getElementById('r-gap').textContent=fmt(gap||null);
+  document.getElementById('r-min-warning').style.display=(gap>0&&gap<100000)?'block':'none';
+  const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
+  const cost=gap>0?(gap/100)*rate:null;
+  const overage=gap>0?(gap/100)*1.10:null;
+  const saving=cost!=null&&overage!=null?overage-cost:null;
+  document.getElementById('r-cost').textContent=fmtD(cost);
+  document.getElementById('r-overage').textContent=fmtD(overage);
+  document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+
+function syncRenewalFields(totalMonth,totalYear,users,source){
+  const freePM=getFreePM();
+  const cpum=users>0&&totalMonth>0?totalMonth/users:0;
+  const cpumExcl=Math.max(0,cpum-freePM);
+  const totalMonthExcl=Math.max(0,totalMonth-(users*freePM));
+  const totalYearExcl=Math.max(0,totalYear-(users*freePM*12));
+  if(source!=='cpum')       setFieldIfNotActive('r-cpum',cpum);
+  if(source!=='cpum-excl')  setFieldIfNotActive('r-cpum-excl',cpumExcl);
+  if(source!=='month')      setFieldIfNotActive('r-total-month',totalMonth);
+  if(source!=='month-excl') setFieldIfNotActive('r-total-month-excl',totalMonthExcl);
+  if(source!=='year')       setFieldIfNotActive('r-total-year',totalYear);
+  if(source!=='year-excl')  setFieldIfNotActive('r-total-year-excl',totalYearExcl);
+}
+
+// Driven by users + cpum (incl.)
+function calcRenewal(){
+  const users=getRawVal('r-users');
+  const cpum=getRawVal('r-cpum');
+  const totalMonth=users*cpum;
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'cpum');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+// Driven by cpum excl. free
+function calcRenewalFromCpumExcl(){
+  const users=getRawVal('r-users');
+  const cpumExcl=getRawVal('r-cpum-excl');
+  const freePM=getFreePM();
+  const cpum=cpumExcl+freePM;
+  const totalMonth=users*cpum;
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'cpum-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+// Driven by total month (incl.)
+function calcRenewalFromMonth(){
+  const users=getRawVal('r-users');
+  const totalMonth=getRawVal('r-total-month');
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'month');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+// Driven by total month excl. free
+function calcRenewalFromMonthExcl(){
+  const users=getRawVal('r-users');
+  const freePM=getFreePM();
+  const totalMonthExcl=getRawVal('r-total-month-excl');
+  const totalMonth=totalMonthExcl+(users*freePM);
+  const totalYear=totalMonth*12;
+  syncRenewalFields(totalMonth,totalYear,users,'month-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+// Driven by total annual (incl.)
+function calcRenewalFromYear(){
+  const users=getRawVal('r-users');
+  const totalYear=getRawVal('r-total-year');
+  const totalMonth=totalYear/12;
+  syncRenewalFields(totalMonth,totalYear,users,'year');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+// Driven by total annual excl. free
+function calcRenewalFromYearExcl(){
+  const users=getRawVal('r-users');
+  const freePM=getFreePM();
+  const totalYearExcl=getRawVal('r-total-year-excl');
+  const totalYear=totalYearExcl+(users*freePM*12);
+  const totalMonth=totalYear/12;
+  syncRenewalFields(totalMonth,totalYear,users,'year-excl');
+  applyRenewalResults(totalMonth,totalYear,users);
+}
+
+function onRenewalSlider(){
+  const users=getRawVal('r-users');
+  const totalYear=getRawVal('r-total-year')||getRawVal('r-cpum')*users*12;
+  const isGF=document.getElementById('r-grandfatherToggle').checked;
+  const creditsPerUser=isGF?CREDITS_GF:CREDITS_NEW;
+  const included=users*creditsPerUser;
+  const gap=Math.max(0,totalYear-included);
+  const rate=updateSlider('r',gap,document.getElementById('r-rate-slider').value);
+  const cost=gap>0?(gap/100)*rate:null;
+  const overage=gap>0?(gap/100)*1.10:null;
+  const saving=cost!=null&&overage!=null?overage-cost:null;
+  document.getElementById('r-cost').textContent=fmtD(cost);
+  document.getElementById('r-overage').textContent=fmtD(overage);
+  document.getElementById('r-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+
+function calcExpansion(){
+  const users=getRawVal('e-users');
+  const cpum=getRawVal('e-cpum');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
+  const totalMonth=users*cpum;
+  const tmEl=document.getElementById('e-total-month-input');
+  if(document.activeElement!==tmEl){
+    tmEl.value=totalMonth>0?totalMonth.toLocaleString('en-US'):'';
+  }
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(purchase>0&&purchase<100000)?'block':'none';
+  const cNote=document.getElementById('e-cumulative-note');
+  if(existing>0&&purchase>0&&showDetails){cNote.textContent='Cumulative: '+fmt(cumulative)+' credits ('+fmt(existing)+' existing + '+fmt(purchase)+' new)';}
+  else{cNote.textContent='';}
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+
+function calcExpansionFromTotal(){
+  const users=getRawVal('e-users');
+  const totalMonth=getRawVal('e-total-month-input');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
+  const perUser=users>0&&totalMonth>0?totalMonth/users:0;
+  const cpumEl=document.getElementById('e-cpum');
+  if(perUser>0){
+    cpumEl.value=document.activeElement===cpumEl?perUser.toFixed(2):perUser.toLocaleString('en-US',{maximumFractionDigits:2});
+  }
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  document.getElementById('e-purchase').textContent=purchase>0?fmt(purchase)+' credits':'—';
+  document.getElementById('e-min-warning').style.display=(purchase>0&&purchase<100000)?'block':'none';
+  const cNote=document.getElementById('e-cumulative-note');
+  if(existing>0&&purchase>0&&showDetails){cNote.textContent='Cumulative: '+fmt(cumulative)+' credits ('+fmt(existing)+' existing + '+fmt(purchase)+' new)';}
+  else{cNote.textContent='';}
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+
+function onExpansionSlider(){
+  const users=getRawVal('e-users');
+  const cpum=getRawVal('e-cpum');
+  const months=getRawVal('e-months');
+  const existing=getRawVal('e-existing');
+  const totalMonth=users*cpum;
+  const purchase=totalMonth*months;
+  const cumulative=existing+purchase;
+  const rate=updateSlider('e',cumulative,document.getElementById('e-rate-slider').value);
+  const arr=purchase>0?(purchase/100)*rate:null;
+  const overage=purchase>0?(purchase/100)*1.10:null;
+  const saving=arr!=null&&overage!=null?overage-arr:null;
+  document.getElementById('e-arr').textContent=fmtD(arr);
+  document.getElementById('e-overage').textContent=fmtD(overage);
+  document.getElementById('e-saving').textContent=fmtD(saving!=null?Math.max(0,saving):null);
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='renewal'?0:1)));
+  document.getElementById('tab-renewal').classList.toggle('active',t==='renewal');
+  document.getElementById('tab-expansion').classList.toggle('active',t==='expansion');
+}
+
+document.getElementById('detailsToggle').addEventListener('change',function(){
+  showDetails=this.checked;calcRenewal();calcExpansion();
+});
+
+['r-users','r-cpum'].forEach(id=>wireCalc(id,calcRenewal));
+wireCalc('r-cpum-excl',calcRenewalFromCpumExcl);
+wireCalc('r-total-month',calcRenewalFromMonth);
+wireCalc('r-total-month-excl',calcRenewalFromMonthExcl);
+wireCalc('r-total-year',calcRenewalFromYear);
+wireCalc('r-total-year-excl',calcRenewalFromYearExcl);
+['e-users','e-cpum','e-months','e-existing'].forEach(id=>wireCalc(id,calcExpansion));
+wireCalc('e-total-month-input',calcExpansionFromTotal);
+
+updateSlider('r',0,0.95);
+updateSlider('e',0,0.95);
+calcRenewal();
+
+async function takeScreenshot(){
+  const btn=document.getElementById('screenshotBtn');
+  btn.classList.add('capturing');
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Capturing...`;
+  try {
+    const wrap=document.getElementById('calculator-wrap');
+    btn.style.visibility='hidden';
+    await new Promise(r=>setTimeout(r,50));
+    const rawCanvas=await html2canvas(wrap,{backgroundColor:'#111111',scale:2,useCORS:true,logging:false});
+    const margin=40*2;
+    const canvas=document.createElement('canvas');
+    canvas.width=rawCanvas.width+margin*2;
+    canvas.height=rawCanvas.height+margin*2;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#111111';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(rawCanvas,margin,margin);
+    btn.style.visibility='visible';
+    const link=document.createElement('a');
+    const now=new Date();
+    const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    link.download='sourcegraph-credit-calculator-'+ts+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  } catch(e){
+    console.error('Screenshot failed:',e);
+    btn.style.visibility='visible';
+    alert('Screenshot failed. Please try again.');
+  } finally {
+    btn.classList.remove('capturing');
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Take a screenshot`;
+  }
+}
+</script>
+</body>
+</html>
