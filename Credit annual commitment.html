@@ -81,12 +81,10 @@ tbody tr td:first-child{color:#bbb;font-weight:500;background:#1a1a1a;width:200p
 .incl-label.grandfathered{color:#e8a838}
 .incl-label.ela{color:#60a5fa}
 tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-top:0.5px solid #2a2a2a}
-
-/* Tooltip styles */
 .tooltip-wrap{position:relative;display:inline-block;vertical-align:middle;}
 .tooltip-btn{background:none;border:1px solid #5b9bd5;border-radius:50%;color:#5b9bd5;font-size:9px;width:14px;height:14px;cursor:pointer;padding:0;line-height:14px;text-align:center;font-family:'Inter',sans-serif;font-weight:600;flex-shrink:0;}
 .tooltip-btn:hover{background:#5b9bd5;color:#111;}
-.tooltip-bubble{display:none;position:absolute;left:20px;top:-4px;background:#1a2a3a;border:0.5px solid #5b9bd5;border-radius:6px;padding:7px 10px;font-size:11px;color:#5b9bd5;white-space:nowrap;z-index:100;pointer-events:none;max-width:320px;white-space:normal;line-height:1.5;}
+.tooltip-bubble{display:none;position:absolute;left:20px;top:-4px;background:#1a2a3a;border:0.5px solid #5b9bd5;border-radius:6px;padding:7px 10px;font-size:11px;color:#5b9bd5;z-index:100;pointer-events:none;max-width:320px;white-space:normal;line-height:1.5;}
 .tooltip-wrap:hover .tooltip-bubble{display:block;}
 </style>
 </head>
@@ -169,7 +167,12 @@ tfoot td{padding:8px 16px;font-size:11px;color:#555;background:#1a1a1a;border-to
     <div class="inputs-row-2" id="ela-row-2" style="display:none;">
       <div style="display:flex;flex-direction:column;gap:4px;">
         <div style="font-size:10px;font-weight:500;letter-spacing:.06em;color:#60a5fa;text-transform:uppercase;">Expected usage — total credits / month</div>
-        <div style="font-size:10px;color:#555;min-height:14px;">Company-wide</div>
+        <div style="font-size:10px;color:#555;min-height:14px;display:flex;align-items:center;gap:4px;">Company-wide
+          <span class="tooltip-wrap">
+            <button class="tooltip-btn" type="button">?</button>
+            <span class="tooltip-bubble">Please make sure this is representative of the total pooled expected credits per month (including "free" credits)</span>
+          </span>
+        </div>
         <div style="display:flex;gap:10px;align-items:flex-end;">
           <div style="display:flex;flex-direction:column;gap:3px;">
             <span style="font-size:10px;color:#5cb85c;">Base</span>
@@ -306,7 +309,6 @@ function onNumInputDecimal(el){
   calc();
 }
 function onNumFocus(el){}
-
 let internalVisible=true,isGrandfathered=false,isELA=false;
 function switchMode(){
   const bar=document.getElementById('inputs-bar');
